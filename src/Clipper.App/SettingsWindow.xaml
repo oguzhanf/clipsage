@@ -11,17 +11,17 @@
         WindowStartupLocation="CenterOwner"
         GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
         ResizeMode="NoResize">
-    
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        
-        <TextBlock Grid.Row="0" Text="Settings" FontSize="24" FontWeight="Bold" Margin="0,0,0,20" 
+
+        <TextBlock Grid.Row="0" Text="Settings" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"
                    Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-        
+
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel>
                 <!-- General Settings -->
@@ -32,7 +32,7 @@
                         <CheckBox Content="Minimize to tray when closed" IsChecked="{Binding MinimizeToTray}" Margin="0,5"/>
                     </StackPanel>
                 </GroupBox>
-                
+
                 <!-- Clipboard History Settings -->
                 <GroupBox Header="Clipboard History" Margin="0,0,0,10">
                     <StackPanel Margin="10">
@@ -53,23 +53,36 @@
                         </DockPanel>
                     </StackPanel>
                 </GroupBox>
-                
+
+                <!-- Caching Settings -->
+                <GroupBox Header="Caching" Margin="0,0,0,10">
+                    <StackPanel Margin="10">
+                        <TextBlock Text="Caching Folder:" VerticalAlignment="Center" Margin="0,5"/>
+                        <DockPanel Margin="0,5">
+                            <TextBox Text="{Binding CachingFolder}" IsReadOnly="True" Margin="0,0,10,0" Width="300"/>
+                            <Button Content="Browse..." Click="BrowseCachingFolder_Click" Width="80"/>
+                        </DockPanel>
+                        <TextBlock Text="Tip: Use a folder in OneDrive, Google Drive, or Dropbox to sync your clipboard data between systems."
+                                   TextWrapping="Wrap" Margin="0,5" Foreground="Gray"/>
+                    </StackPanel>
+                </GroupBox>
+
                 <!-- Hotkey Settings -->
                 <GroupBox Header="Hotkeys" Margin="0,0,0,10">
                     <StackPanel Margin="10">
                         <DockPanel Margin="0,5">
                             <TextBlock Text="Quick picker hotkey:" VerticalAlignment="Center"/>
-                            <TextBox Text="Ctrl+Shift+V" IsReadOnly="True" Margin="10,0,0,0" 
+                            <TextBox Text="Ctrl+Shift+V" IsReadOnly="True" Margin="10,0,0,0"
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                         </DockPanel>
                     </StackPanel>
                 </GroupBox>
             </StackPanel>
         </ScrollViewer>
-        
+
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
             <Button Content="Cancel" Width="80" Margin="0,0,10,0" Click="CancelButton_Click"/>
-            <Button Content="Save" Width="80" Click="SaveButton_Click" 
+            <Button Content="Save" Width="80" Click="SaveButton_Click"
                     Background="{DynamicResource MahApps.Brushes.Accent}" Foreground="White"/>
         </StackPanel>
     </Grid>

@@ -60,6 +60,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- Menu -->
@@ -179,5 +180,12 @@
                 </Border>
             </DockPanel>
         </Grid>
+
+        <!-- Status Bar -->
+        <StatusBar Grid.Row="3" Height="25">
+            <StatusBarItem>
+                <TextBlock x:Name="CachingFolderStatus" Text="Caching Folder: Not configured" />
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </metro:MetroWindow>

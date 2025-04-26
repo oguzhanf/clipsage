@@ -136,6 +136,35 @@ namespace Clipper.App
             }
         }
 
+        // Caching settings
+        private string _cachingFolder;
+        public string CachingFolder
+        {
+            get => _cachingFolder;
+            set
+            {
+                if (_cachingFolder != value)
+                {
+                    _cachingFolder = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private bool _cachingFolderConfigured;
+        public bool CachingFolderConfigured
+        {
+            get => _cachingFolderConfigured;
+            set
+            {
+                if (_cachingFolderConfigured != value)
+                {
+                    _cachingFolderConfigured = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public SettingsViewModel()
         {
             LoadSettings();
@@ -154,6 +183,8 @@ namespace Clipper.App
             MaxTextLength = Properties.Settings.Default.MaxTextLength;
             IgnoreLargeImages = Properties.Settings.Default.IgnoreLargeImages;
             MaxImageSize = Properties.Settings.Default.MaxImageSize;
+            CachingFolder = Properties.Settings.Default.CachingFolder;
+            CachingFolderConfigured = Properties.Settings.Default.CachingFolderConfigured;
         }
 
         public void SaveSettings()
@@ -168,6 +199,8 @@ namespace Clipper.App
             Properties.Settings.Default.MaxTextLength = MaxTextLength;
             Properties.Settings.Default.IgnoreLargeImages = IgnoreLargeImages;
             Properties.Settings.Default.MaxImageSize = MaxImageSize;
+            Properties.Settings.Default.CachingFolder = CachingFolder;
+            Properties.Settings.Default.CachingFolderConfigured = CachingFolderConfigured;
 
             Properties.Settings.Default.Save();
 
