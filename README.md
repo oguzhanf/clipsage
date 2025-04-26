@@ -1,8 +1,8 @@
-# ClipperMVP
+# ClipSage (formerly ClipperMVP)
 
 ## Advanced Clipboard History & Snippet Manager for Windows
 
-ClipperMVP is a powerful clipboard management tool designed for Windows users who need more than just basic copy-paste functionality. It provides an intelligent way to track, organize, and reuse your clipboard history while offering advanced snippet management capabilities.
+ClipSage is a powerful clipboard management tool designed for Windows users who need more than just basic copy-paste functionality. It provides an intelligent way to track, organize, and reuse your clipboard history while offering advanced snippet management capabilities.
 
 ### Key Features
 
@@ -16,7 +16,7 @@ ClipperMVP is a powerful clipboard management tool designed for Windows users wh
 
 ### Getting Started
 
-ClipperMVP is currently in development. Stay tuned for the first release!
+ClipSage is currently in development. Stay tuned for the first release!
 
 ## License
 
