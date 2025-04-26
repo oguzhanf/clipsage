@@ -11,17 +11,34 @@ namespace Clipper.Core.Storage
     {
         private const int MaxHistorySize = 500;
         private readonly string _databasePath;
+        private readonly FileBasedClipboardStore _fileStore;
+        private readonly string _cacheFolderPath;
 
         public HistoryStore()
         {
+            // Default to AppData if no cache folder is configured
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             var clipperPath = Path.Combine(appDataPath, "Clipper");
             Directory.CreateDirectory(clipperPath);
             _databasePath = Path.Combine(clipperPath, "history.db");
+            _cacheFolderPath = clipperPath;
+            _fileStore = new FileBasedClipboardStore(_cacheFolderPath);
+        }
+
+        public HistoryStore(string cacheFolderPath)
+        {
+            if (string.IsNullOrEmpty(cacheFolderPath))
+                throw new ArgumentNullException(nameof(cacheFolderPath));
+
+            _cacheFolderPath = cacheFolderPath;
+            Directory.CreateDirectory(_cacheFolderPath);
+            _databasePath = Path.Combine(_cacheFolderPath, "history.db");
+            _fileStore = new FileBasedClipboardStore(_cacheFolderPath);
         }
 
         public async Task AddAsync(ClipboardEntry entry)
         {
+            // Save to database
             await Task.Run(() =>
             {
                 using var db = new LiteDatabase(_databasePath);
@@ -37,6 +54,18 @@ namespace Clipper.Core.Storage
                     }
                 }
             });
+
+            // Save to file system
+            try
+            {
+                await _fileStore.SaveClipboardEntryAsync(entry);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving clipboard entry to file: {ex.Message}");
+                // We don't want to throw the exception here as it would disrupt the application flow
+                // Just log it and continue
+            }
         }
 
         public async Task<List<ClipboardEntry>> GetRecentAsync(int limit)
@@ -51,12 +80,46 @@ namespace Clipper.Core.Storage
 
         public async Task DeleteAsync(Guid id)
         {
+            // Get the entry type before deleting
+            ClipboardDataType dataType = ClipboardDataType.Text; // Default
+            bool entryFound = false;
+
             await Task.Run(() =>
             {
                 using var db = new LiteDatabase(_databasePath);
                 var collection = db.GetCollection<ClipboardEntry>("history");
+                var entry = collection.FindById(id);
+                if (entry != null)
+                {
+                    dataType = entry.DataType;
+                    entryFound = true;
+                }
                 collection.Delete(id);
             });
+
+            // Delete from file system
+            if (entryFound)
+            {
+                try
+                {
+                    // Delete the files associated with this entry
+                    string folder = dataType == ClipboardDataType.Text ? "Text" : "Images";
+                    string filePath = Path.Combine(_cacheFolderPath, folder, $"{id}.{(dataType == ClipboardDataType.Text ? "txt" : "png")}");
+                    string metadataPath = Path.Combine(_cacheFolderPath, folder, $"{id}.meta");
+
+                    if (File.Exists(filePath))
+                        File.Delete(filePath);
+
+                    if (File.Exists(metadataPath))
+                        File.Delete(metadataPath);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error deleting clipboard entry file: {ex.Message}");
+                    // We don't want to throw the exception here as it would disrupt the application flow
+                    // Just log it and continue
+                }
+            }
         }
 
         public async Task PinAsync(Guid id, bool isPinned)

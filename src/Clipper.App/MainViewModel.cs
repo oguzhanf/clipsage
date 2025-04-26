@@ -43,7 +43,17 @@ namespace Clipper.App
         public MainViewModel()
         {
             _clipboardService = Clipper.Core.ClipboardService.Instance;
-            _historyStore = new Clipper.Core.Storage.HistoryStore();
+
+            // Use the configured cache folder if available
+            string cacheFolderPath = Properties.Settings.Default.CachingFolder;
+            if (Properties.Settings.Default.CachingFolderConfigured && !string.IsNullOrEmpty(cacheFolderPath))
+            {
+                _historyStore = new Clipper.Core.Storage.HistoryStore(cacheFolderPath);
+            }
+            else
+            {
+                _historyStore = new Clipper.Core.Storage.HistoryStore();
+            }
 
             // Subscribe to clipboard changes
             _clipboardService.ClipboardChanged += OnClipboardChanged;
