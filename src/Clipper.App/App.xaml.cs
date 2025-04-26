@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.Data;
+using System.IO;
 using System.Windows;
 using Clipper.App.Properties;
 
@@ -16,9 +17,25 @@ namespace Clipper.App
             base.OnStartup(e);
 
             // Check if caching folder is configured
-            if (!Clipper.App.Properties.Settings.Default.CachingFolderConfigured)
+            if (!Clipper.App.Properties.Settings.Default.CachingFolderConfigured ||
+                string.IsNullOrEmpty(Clipper.App.Properties.Settings.Default.CachingFolder))
             {
                 ShowCachingFolderDialog();
+            }
+            else
+            {
+                // Verify the configured folder exists and is accessible
+                string cachingFolder = Clipper.App.Properties.Settings.Default.CachingFolder;
+                if (!Directory.Exists(cachingFolder))
+                {
+                    MessageBox.Show(
+                        $"The configured caching folder '{cachingFolder}' does not exist or is not accessible. Please select a new folder.",
+                        "Caching Folder Not Found",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+
+                    ShowCachingFolderDialog();
+                }
             }
 
             // Check if we should start minimized
@@ -47,11 +64,16 @@ namespace Clipper.App
                 Clipper.App.Properties.Settings.Default.CachingFolderConfigured = true;
                 Clipper.App.Properties.Settings.Default.Save();
             }
-            else if (!dialog.RemindLater)
+            else
             {
-                // User skipped and doesn't want to be reminded
-                Clipper.App.Properties.Settings.Default.CachingFolderConfigured = true;
-                Clipper.App.Properties.Settings.Default.Save();
+                // User didn't select a folder, exit the application
+                MessageBox.Show(
+                    "A caching folder is required to use ClipSage. The application will now exit.",
+                    "Caching Folder Required",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                Shutdown();
             }
         }
 

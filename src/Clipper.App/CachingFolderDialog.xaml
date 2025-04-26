@@ -11,17 +11,17 @@
         WindowStartupLocation="CenterScreen"
         GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
         ResizeMode="NoResize">
-    
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        
-        <TextBlock Grid.Row="0" Text="Caching Folder Setup" FontSize="24" FontWeight="Bold" Margin="0,0,0,20" 
+
+        <TextBlock Grid.Row="0" Text="Caching Folder Setup" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"
                    Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-        
+
         <StackPanel Grid.Row="1">
             <TextBlock TextWrapping="Wrap" Margin="0,0,0,20">
                 <Run FontWeight="Bold">Welcome to ClipSage!</Run>
@@ -32,19 +32,21 @@
                 <LineBreak/>
                 <Run FontWeight="Bold">Recommendation:</Run> Choose a folder within OneDrive, Google Drive, Dropbox, or another cloud storage service to automatically sync your clipboard data across multiple computers.
             </TextBlock>
-            
+
             <TextBlock Text="Caching Folder:" VerticalAlignment="Center" Margin="0,10,0,5"/>
             <DockPanel Margin="0,0,0,20">
                 <TextBox x:Name="CachingFolderTextBox" IsReadOnly="True" Margin="0,0,10,0"/>
                 <Button Content="Browse..." Click="BrowseButton_Click" Width="80"/>
             </DockPanel>
-            
-            <CheckBox x:Name="RemindLaterCheckBox" Content="Remind me later" Margin="0,10,0,0"/>
+
+            <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" Foreground="Red">
+                Note: A caching folder is required to use ClipSage. The application cannot start without a valid caching folder.
+            </TextBlock>
         </StackPanel>
-        
+
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="Skip" Width="80" Margin="0,0,10,0" Click="SkipButton_Click"/>
-            <Button Content="Save" Width="80" Click="SaveButton_Click" 
+            <Button Content="Help" Width="80" Margin="0,0,10,0" Click="SkipButton_Click"/>
+            <Button Content="Continue" Width="80" Click="SaveButton_Click"
                     Background="{DynamicResource MahApps.Brushes.Accent}" Foreground="White"/>
         </StackPanel>
     </Grid>

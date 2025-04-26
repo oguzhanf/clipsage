@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
 using MahApps.Metro.Controls;
@@ -11,22 +13,21 @@ namespace Clipper.App
     public partial class CachingFolderDialog : MetroWindow
     {
         private string _selectedFolder;
-        
+
         public string SelectedFolder => _selectedFolder;
-        public bool RemindLater => RemindLaterCheckBox.IsChecked ?? false;
-        
+
         public CachingFolderDialog()
         {
             InitializeComponent();
         }
-        
+
         private void BrowseButton_Click(object sender, RoutedEventArgs e)
         {
             using (var dialog = new FolderBrowserDialog())
             {
-                dialog.Description = "Select a folder for caching clipboard data";
+                dialog.Description = "Select an empty folder for caching clipboard data";
                 dialog.UseDescriptionForTitle = true;
-                
+
                 // If a folder is already selected, start from there
                 if (!string.IsNullOrEmpty(_selectedFolder))
                 {
@@ -35,29 +36,105 @@ namespace Clipper.App
 
                 if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    _selectedFolder = dialog.SelectedPath;
+                    string selectedPath = dialog.SelectedPath;
+
+                    // Check if the folder exists
+                    if (!Directory.Exists(selectedPath))
+                    {
+                        try
+                        {
+                            // Create the folder if it doesn't exist
+                            Directory.CreateDirectory(selectedPath);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Windows.MessageBox.Show(
+                                $"Failed to create the folder: {ex.Message}",
+                                "Error",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Error);
+                            return;
+                        }
+                    }
+
+                    // Check if the folder is empty
+                    if (!IsFolderEmpty(selectedPath))
+                    {
+                        var result = System.Windows.MessageBox.Show(
+                            "The selected folder is not empty. ClipSage requires an empty folder for caching. Do you want to select a different folder?",
+                            "Folder Not Empty",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Warning);
+
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            // User wants to select a different folder
+                            BrowseButton_Click(sender, e);
+                            return;
+                        }
+                        // If user selects No, we'll use the non-empty folder anyway
+                    }
+
+                    _selectedFolder = selectedPath;
                     CachingFolderTextBox.Text = _selectedFolder;
                 }
             }
         }
-        
+
+        private bool IsFolderEmpty(string folderPath)
+        {
+            return !Directory.EnumerateFileSystemEntries(folderPath).Any();
+        }
+
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(_selectedFolder))
             {
-                System.Windows.MessageBox.Show("Please select a caching folder.", "Caching Folder Required", 
+                System.Windows.MessageBox.Show("Please select a caching folder.", "Caching Folder Required",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-            
+
+            // Verify the folder exists and is accessible
+            if (!Directory.Exists(_selectedFolder))
+            {
+                System.Windows.MessageBox.Show("The selected folder does not exist or is not accessible.",
+                    "Invalid Folder", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // Final check if the folder is empty
+            if (!IsFolderEmpty(_selectedFolder))
+            {
+                var result = System.Windows.MessageBox.Show(
+                    "The selected folder is not empty. Using a non-empty folder may cause issues. Are you sure you want to continue?",
+                    "Folder Not Empty",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.No)
+                {
+                    return;
+                }
+            }
+
             DialogResult = true;
             Close();
         }
-        
+
         private void SkipButton_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = false;
-            Close();
+            // Show help information
+            System.Windows.MessageBox.Show(
+                "ClipSage requires an empty folder for caching clipboard data.\n\n" +
+                "For best results:\n" +
+                "1. Choose a folder in a cloud storage service (OneDrive, Google Drive, Dropbox)\n" +
+                "2. Make sure the folder is empty\n" +
+                "3. Ensure you have write permissions to the folder\n\n" +
+                "This allows your clipboard data to be synced across multiple devices.",
+                "ClipSage Caching Help",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
         }
     }
 }
