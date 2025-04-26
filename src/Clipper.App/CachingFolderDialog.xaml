@@ -39,7 +39,8 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBox x:Name="CachingFolderTextBox" IsReadOnly="True" Margin="0,0,10,0" Grid.Column="0"/>
+                <TextBox x:Name="CachingFolderTextBox" IsReadOnly="False" Margin="0,0,10,0" Grid.Column="0"
+                         TextChanged="CachingFolderTextBox_TextChanged" ToolTip="Enter a folder path or use the Browse button to select one"/>
                 <Button Content="Browse..." Click="BrowseButton_Click" Width="80" Grid.Column="1" HorizontalAlignment="Right"/>
             </Grid>
 

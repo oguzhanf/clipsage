@@ -13,6 +13,7 @@ namespace Clipper.App
     public partial class CachingFolderDialog : MetroWindow
     {
         private string _selectedFolder;
+        private bool _isManuallyEditing = false;
 
         public string SelectedFolder => _selectedFolder;
 
@@ -32,6 +33,11 @@ namespace Clipper.App
                 if (!string.IsNullOrEmpty(_selectedFolder))
                 {
                     dialog.SelectedPath = _selectedFolder;
+                }
+                else if (!string.IsNullOrEmpty(CachingFolderTextBox.Text.Trim()))
+                {
+                    // Use the manually entered path as a starting point
+                    dialog.SelectedPath = CachingFolderTextBox.Text.Trim();
                 }
 
                 if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -75,8 +81,16 @@ namespace Clipper.App
                         // If user selects No, we'll use the non-empty folder anyway
                     }
 
-                    _selectedFolder = selectedPath;
-                    CachingFolderTextBox.Text = _selectedFolder;
+                    _isManuallyEditing = true;
+                    try
+                    {
+                        _selectedFolder = selectedPath;
+                        CachingFolderTextBox.Text = _selectedFolder;
+                    }
+                    finally
+                    {
+                        _isManuallyEditing = false;
+                    }
                 }
             }
         }
@@ -88,9 +102,15 @@ namespace Clipper.App
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
+            // If the user has manually entered a path, use that
+            if (string.IsNullOrEmpty(_selectedFolder) && !string.IsNullOrEmpty(CachingFolderTextBox.Text.Trim()))
+            {
+                _selectedFolder = CachingFolderTextBox.Text.Trim();
+            }
+
             if (string.IsNullOrEmpty(_selectedFolder))
             {
-                System.Windows.MessageBox.Show("Please select a caching folder.", "Caching Folder Required",
+                System.Windows.MessageBox.Show("Please enter or select a caching folder.", "Caching Folder Required",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
@@ -98,9 +118,33 @@ namespace Clipper.App
             // Verify the folder exists and is accessible
             if (!Directory.Exists(_selectedFolder))
             {
-                System.Windows.MessageBox.Show("The selected folder does not exist or is not accessible.",
-                    "Invalid Folder", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
+                // Ask if the user wants to create the folder
+                var result = System.Windows.MessageBox.Show(
+                    $"The folder '{_selectedFolder}' does not exist. Would you like to create it?",
+                    "Create Folder",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(_selectedFolder);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Windows.MessageBox.Show(
+                            $"Failed to create the folder: {ex.Message}",
+                            "Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                        return;
+                    }
+                }
+                else
+                {
+                    return;
+                }
             }
 
             // Final check if the folder is empty
@@ -135,6 +179,48 @@ namespace Clipper.App
                 "ClipSage Caching Help",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
+        }
+
+        private void CachingFolderTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (_isManuallyEditing)
+                return;
+
+            _isManuallyEditing = true;
+
+            try
+            {
+                string enteredPath = CachingFolderTextBox.Text.Trim();
+
+                if (!string.IsNullOrEmpty(enteredPath))
+                {
+                    // Check if the path is valid
+                    if (IsValidPath(enteredPath))
+                    {
+                        _selectedFolder = enteredPath;
+                    }
+                }
+            }
+            finally
+            {
+                _isManuallyEditing = false;
+            }
+        }
+
+        private bool IsValidPath(string path)
+        {
+            try
+            {
+                // Check if the path is a valid format
+                var fullPath = Path.GetFullPath(path);
+
+                // Check if the directory exists, if not, we'll create it later
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
