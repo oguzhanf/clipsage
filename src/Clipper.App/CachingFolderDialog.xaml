@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Clipper.App"
         xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
         mc:Ignorable="d"
-        Title="ClipSage - Caching Folder Setup"
+        Title="ClipperMVP - Caching Folder Setup"
         Height="400" Width="600"
         WindowStartupLocation="CenterScreen"
         GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
@@ -24,10 +24,10 @@
 
         <StackPanel Grid.Row="1">
             <TextBlock TextWrapping="Wrap" Margin="0,0,0,20">
-                <Run FontWeight="Bold">Welcome to ClipSage!</Run>
+                <Run FontWeight="Bold">Welcome to ClipperMVP!</Run>
                 <LineBreak/>
                 <LineBreak/>
-                To enable clipboard data syncing between your devices, please select a folder where ClipSage will store its cache files.
+                To enable clipboard data syncing between your devices, please select a folder where ClipperMVP will store its cache files.
                 <LineBreak/>
                 <LineBreak/>
                 <Run FontWeight="Bold">Recommendation:</Run> Choose a folder within OneDrive, Google Drive, Dropbox, or another cloud storage service to automatically sync your clipboard data across multiple computers.
@@ -44,8 +44,8 @@
                 <Button Content="Browse..." Click="BrowseButton_Click" Width="80" Grid.Column="1" HorizontalAlignment="Right"/>
             </Grid>
 
-            <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" Foreground="Red">
-                Note: A caching folder is required to use ClipSage. The application cannot start without a valid caching folder.
+            <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" Foreground="Red" MinHeight="40">
+                Note: A caching folder is required to use ClipperMVP. The application cannot start without a valid caching folder.
             </TextBlock>
         </StackPanel>
 

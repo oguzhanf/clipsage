@@ -1,6 +1,7 @@
 using System;
+using System.IO;
 using System.Windows;
-using System.Windows.Forms;
+using System.Windows.Controls;
 using MahApps.Metro.Controls;
 
 namespace Clipper.App
@@ -34,22 +35,132 @@ namespace Clipper.App
 
         private void BrowseCachingFolder_Click(object sender, RoutedEventArgs e)
         {
-            using (var dialog = new FolderBrowserDialog())
+            var dialog = new CachingFolderDialog();
+
+            // If a folder is already selected, set it as the initial value
+            if (!string.IsNullOrEmpty(_viewModel.CachingFolder))
             {
-                dialog.Description = "Select a folder for caching clipboard data";
-                dialog.UseDescriptionForTitle = true;
+                dialog.SetInitialFolder(_viewModel.CachingFolder);
+            }
 
-                // If a folder is already selected, start from there
-                if (!string.IsNullOrEmpty(_viewModel.CachingFolder))
+            // Show the dialog as a modal dialog
+            dialog.Owner = this;
+
+            if (dialog.ShowDialog() == true)
+            {
+                string oldFolder = _viewModel.CachingFolder;
+                string newFolder = dialog.SelectedFolder;
+
+                // Check if we need to copy files from the old folder to the new one
+                if (!string.IsNullOrEmpty(oldFolder) &&
+                    !string.IsNullOrEmpty(newFolder) &&
+                    !string.Equals(oldFolder, newFolder, StringComparison.OrdinalIgnoreCase) &&
+                    Directory.Exists(oldFolder))
                 {
-                    dialog.SelectedPath = _viewModel.CachingFolder;
+                    // Ask the user if they want to copy the files
+                    var result = MessageBox.Show(
+                        $"Do you want to copy existing cache files from the current folder to the new folder?\n\nFrom: {oldFolder}\nTo: {newFolder}",
+                        "Copy Cache Files",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        try
+                        {
+                            // Copy all files from the old folder to the new one
+                            CopyFilesRecursively(oldFolder, newFolder);
+                            MessageBox.Show(
+                                "Cache files were successfully copied to the new location.",
+                                "Files Copied",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show(
+                                $"Failed to copy cache files: {ex.Message}\n\nThe cache folder will still be changed, but files were not copied.",
+                                "Error",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Error);
+                        }
+                    }
                 }
 
-                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                {
-                    _viewModel.CachingFolder = dialog.SelectedPath;
-                    _viewModel.CachingFolderConfigured = true;
-                }
+                // Update the view model with the new folder
+                _viewModel.CachingFolder = newFolder;
+                _viewModel.CachingFolderConfigured = true;
+            }
+        }
+
+        private void CopyFilesRecursively(string sourceDir, string targetDir)
+        {
+            // Create the target directory if it doesn't exist
+            Directory.CreateDirectory(targetDir);
+
+            // Copy all files from source to target
+            foreach (var file in Directory.GetFiles(sourceDir))
+            {
+                string fileName = Path.GetFileName(file);
+                string destFile = Path.Combine(targetDir, fileName);
+                File.Copy(file, destFile, true); // Overwrite if exists
+            }
+
+            // Copy all subdirectories and their contents
+            foreach (var directory in Directory.GetDirectories(sourceDir))
+            {
+                string dirName = Path.GetFileName(directory);
+                string destDir = Path.Combine(targetDir, dirName);
+                CopyFilesRecursively(directory, destDir);
+            }
+        }
+
+        private void CachingFolderTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string enteredPath = CachingFolderTextBox.Text.Trim();
+
+            if (string.IsNullOrEmpty(enteredPath))
+            {
+                CachingFolderWarning.Text = "A caching folder is required.";
+                CachingFolderWarning.Visibility = Visibility.Visible;
+                return;
+            }
+
+            // Check if the path is valid
+            if (!IsValidPath(enteredPath))
+            {
+                CachingFolderWarning.Text = "The entered path is not valid.";
+                CachingFolderWarning.Visibility = Visibility.Visible;
+                return;
+            }
+
+            // Check if the directory exists
+            if (!Directory.Exists(enteredPath))
+            {
+                CachingFolderWarning.Text = "The directory does not exist. It will be created when you save settings.";
+                CachingFolderWarning.Visibility = Visibility.Visible;
+                return;
+            }
+
+            // Path is valid and exists
+            CachingFolderWarning.Visibility = Visibility.Collapsed;
+
+            // Update the view model
+            _viewModel.CachingFolder = enteredPath;
+            _viewModel.CachingFolderConfigured = true;
+        }
+
+        private bool IsValidPath(string path)
+        {
+            try
+            {
+                // Check if the path is a valid format
+                var fullPath = Path.GetFullPath(path);
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

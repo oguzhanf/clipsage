@@ -59,11 +59,16 @@
                     <StackPanel Margin="10">
                         <TextBlock Text="Caching Folder:" VerticalAlignment="Center" Margin="0,5"/>
                         <DockPanel Margin="0,5">
-                            <TextBox Text="{Binding CachingFolder}" IsReadOnly="True" Margin="0,0,10,0" Width="300"/>
+                            <TextBox x:Name="CachingFolderTextBox" Text="{Binding CachingFolder, UpdateSourceTrigger=PropertyChanged}"
+                                     IsReadOnly="False" Margin="0,0,10,0" Width="300"
+                                     TextChanged="CachingFolderTextBox_TextChanged"
+                                     ToolTip="Enter a folder path or use the Browse button to select one"/>
                             <Button Content="Browse..." Click="BrowseCachingFolder_Click" Width="80"/>
                         </DockPanel>
                         <TextBlock Text="Tip: Use a folder in OneDrive, Google Drive, or Dropbox to sync your clipboard data between systems."
                                    TextWrapping="Wrap" Margin="0,5" Foreground="Gray"/>
+                        <TextBlock x:Name="CachingFolderWarning" Visibility="Collapsed"
+                                   TextWrapping="Wrap" Margin="0,5" Foreground="Red"/>
                     </StackPanel>
                 </GroupBox>
 

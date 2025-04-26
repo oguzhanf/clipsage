@@ -22,6 +22,23 @@ namespace Clipper.App
             InitializeComponent();
         }
 
+        public void SetInitialFolder(string folderPath)
+        {
+            if (!string.IsNullOrEmpty(folderPath))
+            {
+                _selectedFolder = folderPath;
+                _isManuallyEditing = true;
+                try
+                {
+                    CachingFolderTextBox.Text = folderPath;
+                }
+                finally
+                {
+                    _isManuallyEditing = false;
+                }
+            }
+        }
+
         private void BrowseButton_Click(object sender, RoutedEventArgs e)
         {
             using (var dialog = new FolderBrowserDialog())
@@ -67,7 +84,7 @@ namespace Clipper.App
                     if (!IsFolderEmpty(selectedPath))
                     {
                         var result = System.Windows.MessageBox.Show(
-                            "The selected folder is not empty. ClipSage requires an empty folder for caching. Do you want to select a different folder?",
+                            "The selected folder is not empty. ClipperMVP requires an empty folder for caching. Do you want to select a different folder?",
                             "Folder Not Empty",
                             MessageBoxButton.YesNo,
                             MessageBoxImage.Warning);
@@ -170,13 +187,13 @@ namespace Clipper.App
         {
             // Show help information
             System.Windows.MessageBox.Show(
-                "ClipSage requires an empty folder for caching clipboard data.\n\n" +
+                "ClipperMVP requires an empty folder for caching clipboard data.\n\n" +
                 "For best results:\n" +
                 "1. Choose a folder in a cloud storage service (OneDrive, Google Drive, Dropbox)\n" +
                 "2. Make sure the folder is empty\n" +
                 "3. Ensure you have write permissions to the folder\n\n" +
                 "This allows your clipboard data to be synced across multiple devices.",
-                "ClipSage Caching Help",
+                "ClipperMVP Caching Help",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }
