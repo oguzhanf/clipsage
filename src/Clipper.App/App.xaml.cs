@@ -80,7 +80,17 @@ namespace Clipper.App
         protected override void OnExit(ExitEventArgs e)
         {
             // Save any application settings
-            // We'll implement this later
+            Clipper.App.Properties.Settings.Default.Save();
+
+            // Dispose of the database connection manager
+            try
+            {
+                Clipper.Core.Storage.DatabaseConnectionManager.Instance.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error disposing database connection: {ex.Message}");
+            }
 
             base.OnExit(e);
         }

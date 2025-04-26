@@ -13,6 +13,7 @@ namespace Clipper.Core.Storage
         private readonly string _databasePath;
         private readonly FileBasedClipboardStore _fileStore;
         private readonly string _cacheFolderPath;
+        private readonly DatabaseConnectionManager _dbManager;
 
         public HistoryStore()
         {
@@ -23,6 +24,10 @@ namespace Clipper.Core.Storage
             _databasePath = Path.Combine(clipperPath, "history.db");
             _cacheFolderPath = clipperPath;
             _fileStore = new FileBasedClipboardStore(_cacheFolderPath);
+
+            // Initialize the database connection manager
+            _dbManager = DatabaseConnectionManager.Instance;
+            _dbManager.Initialize(_databasePath);
         }
 
         public HistoryStore(string cacheFolderPath)
@@ -34,26 +39,39 @@ namespace Clipper.Core.Storage
             Directory.CreateDirectory(_cacheFolderPath);
             _databasePath = Path.Combine(_cacheFolderPath, "history.db");
             _fileStore = new FileBasedClipboardStore(_cacheFolderPath);
+
+            // Initialize the database connection manager
+            _dbManager = DatabaseConnectionManager.Instance;
+            _dbManager.Initialize(_databasePath);
         }
 
         public async Task AddAsync(ClipboardEntry entry)
         {
-            // Save to database
-            await Task.Run(() =>
+            // Save to database using the connection manager with retry logic
+            try
             {
-                using var db = new LiteDatabase(_databasePath);
-                var collection = db.GetCollection<ClipboardEntry>("history");
-                collection.Insert(entry);
-
-                if (collection.Count() > MaxHistorySize)
+                await _dbManager.ExecuteWithRetryAsync(db =>
                 {
-                    var oldest = collection.FindAll().OrderBy(e => e.Timestamp).Take(collection.Count() - MaxHistorySize);
-                    foreach (var item in oldest)
+                    var collection = db.GetCollection<ClipboardEntry>("history");
+                    collection.Insert(entry);
+
+                    if (collection.Count() > MaxHistorySize)
                     {
-                        collection.Delete(item.Id);
+                        var oldest = collection.FindAll().OrderBy(e => e.Timestamp).Take(collection.Count() - MaxHistorySize);
+                        foreach (var item in oldest)
+                        {
+                            collection.Delete(item.Id);
+                        }
                     }
-                }
-            });
+
+                    return true;
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving clipboard entry to database: {ex.Message}");
+                // Log the error but continue to try saving to the file system
+            }
 
             // Save to file system
             try
@@ -70,12 +88,20 @@ namespace Clipper.Core.Storage
 
         public async Task<List<ClipboardEntry>> GetRecentAsync(int limit)
         {
-            return await Task.Run(() =>
+            try
             {
-                using var db = new LiteDatabase(_databasePath);
-                var collection = db.GetCollection<ClipboardEntry>("history");
-                return collection.FindAll().OrderByDescending(e => e.Timestamp).Take(limit).ToList();
-            });
+                return await _dbManager.ExecuteWithRetryAsync(db =>
+                {
+                    var collection = db.GetCollection<ClipboardEntry>("history");
+                    return collection.FindAll().OrderByDescending(e => e.Timestamp).Take(limit).ToList();
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving recent clipboard entries: {ex.Message}");
+                // Return an empty list if there's an error
+                return new List<ClipboardEntry>();
+            }
         }
 
         public async Task DeleteAsync(Guid id)
@@ -84,18 +110,25 @@ namespace Clipper.Core.Storage
             ClipboardDataType dataType = ClipboardDataType.Text; // Default
             bool entryFound = false;
 
-            await Task.Run(() =>
+            try
             {
-                using var db = new LiteDatabase(_databasePath);
-                var collection = db.GetCollection<ClipboardEntry>("history");
-                var entry = collection.FindById(id);
-                if (entry != null)
+                await _dbManager.ExecuteWithRetryAsync(db =>
                 {
-                    dataType = entry.DataType;
-                    entryFound = true;
-                }
-                collection.Delete(id);
-            });
+                    var collection = db.GetCollection<ClipboardEntry>("history");
+                    var entry = collection.FindById(id);
+                    if (entry != null)
+                    {
+                        dataType = entry.DataType;
+                        entryFound = true;
+                    }
+                    return collection.Delete(id);
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting clipboard entry from database: {ex.Message}");
+                // Continue to try deleting from the file system
+            }
 
             // Delete from file system
             if (entryFound)
@@ -103,8 +136,30 @@ namespace Clipper.Core.Storage
                 try
                 {
                     // Delete the files associated with this entry
-                    string folder = dataType == ClipboardDataType.Text ? "Text" : "Images";
-                    string filePath = Path.Combine(_cacheFolderPath, folder, $"{id}.{(dataType == ClipboardDataType.Text ? "txt" : "png")}");
+                    string folder;
+                    string extension;
+
+                    switch (dataType)
+                    {
+                        case ClipboardDataType.Text:
+                            folder = "Text";
+                            extension = "txt";
+                            break;
+                        case ClipboardDataType.Image:
+                            folder = "Images";
+                            extension = "png";
+                            break;
+                        case ClipboardDataType.FilePaths:
+                            folder = "FilePaths";
+                            extension = "txt";
+                            break;
+                        default:
+                            folder = "Text";
+                            extension = "txt";
+                            break;
+                    }
+
+                    string filePath = Path.Combine(_cacheFolderPath, folder, $"{id}.{extension}");
                     string metadataPath = Path.Combine(_cacheFolderPath, folder, $"{id}.meta");
 
                     if (File.Exists(filePath))
@@ -112,6 +167,16 @@ namespace Clipper.Core.Storage
 
                     if (File.Exists(metadataPath))
                         File.Delete(metadataPath);
+
+                    // If this was a file paths entry, also delete any cached files
+                    if (dataType == ClipboardDataType.FilePaths)
+                    {
+                        string cacheFolder = Path.Combine(_cacheFolderPath, "Files", id.ToString());
+                        if (Directory.Exists(cacheFolder))
+                        {
+                            Directory.Delete(cacheFolder, true);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -124,17 +189,24 @@ namespace Clipper.Core.Storage
 
         public async Task PinAsync(Guid id, bool isPinned)
         {
-            await Task.Run(() =>
+            try
             {
-                using var db = new LiteDatabase(_databasePath);
-                var collection = db.GetCollection<ClipboardEntry>("history");
-                var entry = collection.FindById(id);
-                if (entry != null)
+                await _dbManager.ExecuteWithRetryAsync(db =>
                 {
-                    entry.Timestamp = isPinned ? DateTime.MaxValue : DateTime.UtcNow;
-                    collection.Update(entry);
-                }
-            });
+                    var collection = db.GetCollection<ClipboardEntry>("history");
+                    var entry = collection.FindById(id);
+                    if (entry != null)
+                    {
+                        entry.Timestamp = isPinned ? DateTime.MaxValue : DateTime.UtcNow;
+                        return collection.Update(entry);
+                    }
+                    return false;
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error pinning clipboard entry: {ex.Message}");
+            }
         }
     }
 
