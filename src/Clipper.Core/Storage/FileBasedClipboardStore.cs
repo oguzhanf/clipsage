@@ -9,17 +9,23 @@ namespace Clipper.Core.Storage
         private readonly string _cacheFolderPath;
         private readonly string _textFolderPath;
         private readonly string _imageFolderPath;
+        private readonly string _filePathsFolderPath;
+        private readonly string _filesCacheFolderPath;
 
         public FileBasedClipboardStore(string cacheFolderPath)
         {
             _cacheFolderPath = cacheFolderPath;
             _textFolderPath = Path.Combine(_cacheFolderPath, "Text");
             _imageFolderPath = Path.Combine(_cacheFolderPath, "Images");
+            _filePathsFolderPath = Path.Combine(_cacheFolderPath, "FilePaths");
+            _filesCacheFolderPath = Path.Combine(_cacheFolderPath, "Files");
 
             // Create directories if they don't exist
             Directory.CreateDirectory(_cacheFolderPath);
             Directory.CreateDirectory(_textFolderPath);
             Directory.CreateDirectory(_imageFolderPath);
+            Directory.CreateDirectory(_filePathsFolderPath);
+            Directory.CreateDirectory(_filesCacheFolderPath);
         }
 
         public async Task SaveClipboardEntryAsync(ClipboardEntry entry)
@@ -34,6 +40,9 @@ namespace Clipper.Core.Storage
                     break;
                 case ClipboardDataType.Image:
                     await SaveImageEntryAsync(entry);
+                    break;
+                case ClipboardDataType.FilePaths:
+                    await SaveFilePathsEntryAsync(entry);
                     break;
                 default:
                     throw new ArgumentException($"Unsupported clipboard data type: {entry.DataType}");
@@ -66,6 +75,23 @@ namespace Clipper.Core.Storage
             await File.WriteAllTextAsync(metadataPath, entry.Timestamp.ToString("o"));
         }
 
+        private async Task SaveFilePathsEntryAsync(ClipboardEntry entry)
+        {
+            if (entry.FilePaths == null || entry.FilePaths.Length == 0)
+                return;
+
+            // Save the file paths to a text file
+            string filePathsFile = Path.Combine(_filePathsFolderPath, $"{entry.Id}.txt");
+            await File.WriteAllLinesAsync(filePathsFile, entry.FilePaths);
+
+            // Create a metadata file with timestamp
+            string metadataPath = Path.Combine(_filePathsFolderPath, $"{entry.Id}.meta");
+            await File.WriteAllTextAsync(metadataPath, entry.Timestamp.ToString("o"));
+
+            // The caching of actual files will be handled by the application layer
+            // since it has access to the settings
+        }
+
         public async Task<ClipboardEntry> LoadClipboardEntryAsync(Guid id, ClipboardDataType dataType)
         {
             switch (dataType)
@@ -74,6 +100,8 @@ namespace Clipper.Core.Storage
                     return await LoadTextEntryAsync(id);
                 case ClipboardDataType.Image:
                     return await LoadImageEntryAsync(id);
+                case ClipboardDataType.FilePaths:
+                    return await LoadFilePathsEntryAsync(id);
                 default:
                     throw new ArgumentException($"Unsupported clipboard data type: {dataType}");
             }
@@ -118,6 +146,27 @@ namespace Clipper.Core.Storage
                 Timestamp = timestamp,
                 DataType = ClipboardDataType.Image,
                 ImageBytes = imageBytes
+            };
+        }
+
+        private async Task<ClipboardEntry> LoadFilePathsEntryAsync(Guid id)
+        {
+            string filePath = Path.Combine(_filePathsFolderPath, $"{id}.txt");
+            string metadataPath = Path.Combine(_filePathsFolderPath, $"{id}.meta");
+
+            if (!File.Exists(filePath) || !File.Exists(metadataPath))
+                return null;
+
+            string[] filePaths = await File.ReadAllLinesAsync(filePath);
+            string timestampStr = await File.ReadAllTextAsync(metadataPath);
+            DateTime timestamp = DateTime.Parse(timestampStr);
+
+            return new ClipboardEntry
+            {
+                Id = id,
+                Timestamp = timestamp,
+                DataType = ClipboardDataType.FilePaths,
+                FilePaths = filePaths
             };
         }
 

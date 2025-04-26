@@ -69,6 +69,18 @@
                                    TextWrapping="Wrap" Margin="0,5" Foreground="Gray"/>
                         <TextBlock x:Name="CachingFolderWarning" Visibility="Collapsed"
                                    TextWrapping="Wrap" Margin="0,5" Foreground="Red"/>
+
+                        <CheckBox Content="Cache copied files (stores file paths by default)"
+                                  IsChecked="{Binding CacheFiles}" Margin="0,10,0,5"
+                                  ToolTip="When disabled, only file paths are stored. When enabled, files are copied to the cache folder."/>
+
+                        <DockPanel Margin="20,5,0,5" IsEnabled="{Binding CacheFiles}">
+                            <TextBlock Text="Maximum file cache size (MB):" VerticalAlignment="Center"/>
+                            <metro:NumericUpDown Value="{Binding MaxFileCacheSize}" Minimum="1" Maximum="1000" Margin="10,0,0,0"/>
+                        </DockPanel>
+
+                        <TextBlock Text="Note: Large file sets will not be cached automatically, only their paths will be stored."
+                                   TextWrapping="Wrap" Margin="0,5" Foreground="Gray"/>
                     </StackPanel>
                 </GroupBox>
 

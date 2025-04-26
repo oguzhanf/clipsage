@@ -81,8 +81,54 @@ namespace Clipper.Core
             {
                 try
                 {
-                    if (Clipboard.ContainsText())
+                    // Check for file paths first
+                    if (Clipboard.ContainsFileDropList())
                     {
+                        var fileDropList = Clipboard.GetFileDropList();
+                        string[] filePaths = new string[fileDropList.Count];
+
+                        for (int i = 0; i < fileDropList.Count; i++)
+                        {
+                            filePaths[i] = fileDropList[i];
+                        }
+
+                        return new ClipboardEntry
+                        {
+                            Id = Guid.NewGuid(),
+                            Timestamp = DateTime.UtcNow,
+                            DataType = ClipboardDataType.FilePaths,
+                            FilePaths = filePaths
+                        };
+                    }
+                    // Check for text
+                    else if (Clipboard.ContainsText())
+                    {
+                        // Windows Snipping Tool puts both text and image in clipboard
+                        // If there's also an image, we'll handle it as an image to avoid duplication
+                        if (Clipboard.ContainsImage())
+                        {
+                            string text = Clipboard.GetText();
+                            // Check if this is a screenshot from Windows Snipping Tool
+                            // The text is usually a file path to a temporary image
+                            if (text.StartsWith("file:///") &&
+                                (text.EndsWith(".png") || text.EndsWith(".jpg") || text.EndsWith(".jpeg") ||
+                                 text.EndsWith(".bmp") || text.EndsWith(".gif")))
+                            {
+                                // This is likely a screenshot, so we'll handle it as an image
+                                using var image = Clipboard.GetImage();
+                                using var stream = new System.IO.MemoryStream();
+                                image.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                                return new ClipboardEntry
+                                {
+                                    Id = Guid.NewGuid(),
+                                    Timestamp = DateTime.UtcNow,
+                                    DataType = ClipboardDataType.Image,
+                                    ImageBytes = stream.ToArray()
+                                };
+                            }
+                        }
+
+                        // Regular text
                         return new ClipboardEntry
                         {
                             Id = Guid.NewGuid(),
@@ -91,6 +137,7 @@ namespace Clipper.Core
                             PlainText = Clipboard.GetText()
                         };
                     }
+                    // Check for image
                     else if (Clipboard.ContainsImage())
                     {
                         using var image = Clipboard.GetImage();
@@ -107,7 +154,7 @@ namespace Clipper.Core
                 }
                 catch (Exception ex)
                 {
-                    // Log or handle error
+                    Console.WriteLine($"Error getting clipboard content: {ex.Message}");
                 }
                 return null;
             }
@@ -145,11 +192,13 @@ namespace Clipper.Core
         public ClipboardDataType DataType { get; set; }
         public string PlainText { get; set; }
         public byte[] ImageBytes { get; set; }
+        public string[] FilePaths { get; set; }
     }
 
     public enum ClipboardDataType
     {
         Text,
-        Image
+        Image,
+        FilePaths
     }
 }

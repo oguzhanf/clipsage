@@ -18,6 +18,8 @@ namespace Clipper.App
         public string? PlainText => _entry.PlainText;
         public byte[]? ImageBytes => _entry.ImageBytes;
 
+        public string[] FilePaths => _entry.FilePaths;
+
         public string DisplayText
         {
             get
@@ -35,6 +37,18 @@ namespace Clipper.App
                 else if (DataType == Clipper.Core.Storage.ClipboardDataType.Image)
                 {
                     return "[Image]";
+                }
+                else if (DataType == Clipper.Core.Storage.ClipboardDataType.FilePaths && FilePaths != null && FilePaths.Length > 0)
+                {
+                    if (FilePaths.Length == 1)
+                    {
+                        string fileName = System.IO.Path.GetFileName(FilePaths[0]);
+                        return $"[File: {fileName}]";
+                    }
+                    else
+                    {
+                        return $"[{FilePaths.Length} files]";
+                    }
                 }
                 return "[Empty]";
             }

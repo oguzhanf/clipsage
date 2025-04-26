@@ -145,12 +145,14 @@ namespace Clipper.Core.Storage
         public ClipboardDataType DataType { get; set; }
         public string? PlainText { get; set; }
         public byte[]? ImageBytes { get; set; }
+        public string[]? FilePaths { get; set; }
     }
 
     public enum ClipboardDataType
     {
         Text,
-        Image
+        Image,
+        FilePaths
     }
 
     public class ClipboardService

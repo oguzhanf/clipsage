@@ -165,6 +165,34 @@ namespace Clipper.App
             }
         }
 
+        private bool _cacheFiles;
+        public bool CacheFiles
+        {
+            get => _cacheFiles;
+            set
+            {
+                if (_cacheFiles != value)
+                {
+                    _cacheFiles = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private int _maxFileCacheSize;
+        public int MaxFileCacheSize
+        {
+            get => _maxFileCacheSize;
+            set
+            {
+                if (_maxFileCacheSize != value)
+                {
+                    _maxFileCacheSize = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public SettingsViewModel()
         {
             LoadSettings();
@@ -185,6 +213,8 @@ namespace Clipper.App
             MaxImageSize = Properties.Settings.Default.MaxImageSize;
             CachingFolder = Properties.Settings.Default.CachingFolder;
             CachingFolderConfigured = Properties.Settings.Default.CachingFolderConfigured;
+            CacheFiles = Properties.Settings.Default.CacheFiles;
+            MaxFileCacheSize = Properties.Settings.Default.MaxFileCacheSize;
         }
 
         public void SaveSettings()
@@ -201,6 +231,8 @@ namespace Clipper.App
             Properties.Settings.Default.MaxImageSize = MaxImageSize;
             Properties.Settings.Default.CachingFolder = CachingFolder;
             Properties.Settings.Default.CachingFolderConfigured = CachingFolderConfigured;
+            Properties.Settings.Default.CacheFiles = CacheFiles;
+            Properties.Settings.Default.MaxFileCacheSize = MaxFileCacheSize;
 
             Properties.Settings.Default.Save();
 
