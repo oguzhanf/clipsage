@@ -12,7 +12,7 @@ namespace Clipper.App
     /// </summary>
     public partial class CachingFolderDialog : MetroWindow
     {
-        private string _selectedFolder;
+        private string _selectedFolder = string.Empty;
         private bool _isManuallyEditing = false;
 
         public string SelectedFolder => _selectedFolder;

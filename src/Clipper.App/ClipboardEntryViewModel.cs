@@ -18,7 +18,7 @@ namespace Clipper.App
         public string? PlainText => _entry.PlainText;
         public byte[]? ImageBytes => _entry.ImageBytes;
 
-        public string[] FilePaths => _entry.FilePaths;
+        public string[]? FilePaths => _entry.FilePaths;
 
         public string DisplayText
         {

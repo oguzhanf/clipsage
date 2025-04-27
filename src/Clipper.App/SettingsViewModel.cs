@@ -137,7 +137,7 @@ namespace Clipper.App
         }
 
         // Caching settings
-        private string _cachingFolder;
+        private string _cachingFolder = string.Empty;
         public string CachingFolder
         {
             get => _cachingFolder;
@@ -145,7 +145,7 @@ namespace Clipper.App
             {
                 if (_cachingFolder != value)
                 {
-                    _cachingFolder = value;
+                    _cachingFolder = value ?? string.Empty;
                     OnPropertyChanged();
                 }
             }
@@ -245,11 +245,26 @@ namespace Clipper.App
             try
             {
                 // Get the path to the executable
-                string executablePath = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+                var process = System.Diagnostics.Process.GetCurrentProcess();
+                var mainModule = process.MainModule;
+
+                if (mainModule == null)
+                {
+                    MessageBox.Show("Failed to get executable path", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                string executablePath = mainModule.FileName;
 
                 // Create or delete the registry key for startup
-                Microsoft.Win32.RegistryKey key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                Microsoft.Win32.RegistryKey? key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
                     "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+
+                if (key == null)
+                {
+                    MessageBox.Show("Failed to open registry key", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
 
                 if (StartWithWindows)
                 {
@@ -270,11 +285,11 @@ namespace Clipper.App
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName ?? string.Empty));
         }
     }
 }

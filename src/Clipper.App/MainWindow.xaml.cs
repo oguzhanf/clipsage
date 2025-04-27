@@ -17,7 +17,7 @@ namespace Clipper.App
     {
         private readonly MainViewModel _viewModel;
         private bool _closeToTray = true;
-        private Hardcodet.Wpf.TaskbarNotification.TaskbarIcon _trayIcon;
+        private Hardcodet.Wpf.TaskbarNotification.TaskbarIcon? _trayIcon;
 
         public MainWindow()
         {
@@ -85,7 +85,7 @@ namespace Clipper.App
             }
         }
 
-        private void OnGlobalHotkey(object sender, NHotkey.HotkeyEventArgs e)
+        private void OnGlobalHotkey(object? sender, NHotkey.HotkeyEventArgs e)
         {
             // Show the quick picker
             ShowQuickPicker();
@@ -145,9 +145,8 @@ namespace Clipper.App
 
         private async void PinButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_viewModel.SelectedEntry != null)
+            if (_viewModel.SelectedEntry != null && sender is Button button && button.Content != null)
             {
-                var button = sender as Button;
                 bool isPinned = button.Content.ToString() == "Unpin";
                 await _viewModel.PinEntryAsync(_viewModel.SelectedEntry, !isPinned);
                 button.Content = isPinned ? "Pin" : "Unpin";

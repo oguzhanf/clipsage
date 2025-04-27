@@ -388,7 +388,7 @@ namespace Clipper.App
             }
         }
 
-        private string GetTruncatedText(string text, int maxLength)
+        private string GetTruncatedText(string? text, int maxLength)
         {
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
@@ -396,7 +396,7 @@ namespace Clipper.App
             return text.Length <= maxLength ? text : text.Substring(0, maxLength - 3) + "...";
         }
 
-        public async Task CopyToClipboardAsync(ClipboardEntryViewModel entry)
+        public Task CopyToClipboardAsync(ClipboardEntryViewModel entry)
         {
             try
             {
@@ -484,6 +484,9 @@ namespace Clipper.App
             {
                 MessageBox.Show($"Error copying to clipboard: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+
+            // Return a completed task since this method doesn't actually perform any async operations
+            return Task.CompletedTask;
         }
 
         public async Task DeleteEntryAsync(ClipboardEntryViewModel entry)
@@ -524,6 +527,10 @@ namespace Clipper.App
         {
             try
             {
+                // Check if FilePaths is null
+                if (entry.FilePaths == null)
+                    return;
+
                 // Calculate total size of files
                 long totalSize = 0;
                 foreach (string path in entry.FilePaths)
@@ -550,13 +557,16 @@ namespace Clipper.App
                     Directory.CreateDirectory(entryFolder);
 
                     // Copy each file
-                    foreach (string path in entry.FilePaths)
+                    if (entry.FilePaths != null)
                     {
-                        if (File.Exists(path))
+                        foreach (string path in entry.FilePaths)
                         {
-                            string fileName = Path.GetFileName(path);
-                            string destPath = Path.Combine(entryFolder, fileName);
-                            await Task.Run(() => File.Copy(path, destPath, true));
+                            if (File.Exists(path))
+                            {
+                                string fileName = Path.GetFileName(path);
+                                string destPath = Path.Combine(entryFolder, fileName);
+                                await Task.Run(() => File.Copy(path, destPath, true));
+                            }
                         }
                     }
                 }
