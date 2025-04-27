@@ -1,0 +1,37 @@
+@page
+@model AuthErrorModel
+@{
+    ViewData["Title"] = "Authentication Error";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h1 class="h4 mb-0">Authentication Error</h1>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-danger mb-4">
+                        <p class="mb-0">We encountered a problem while trying to authenticate you with @Model.Provider.</p>
+                    </div>
+                    
+                    <p>Error details: @Model.ErrorMessage</p>
+                    
+                    <p>Please try the following:</p>
+                    <ul>
+                        <li>Try signing in again</li>
+                        <li>Use a different authentication provider</li>
+                        <li>Clear your browser cookies and cache</li>
+                        <li>Contact support if the problem persists</li>
+                    </ul>
+                    
+                    <div class="mt-4">
+                        <a href="/Account/Login" class="btn btn-primary">Return to Sign In</a>
+                        <a href="/" class="btn btn-outline-secondary ms-2">Go to Home Page</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
