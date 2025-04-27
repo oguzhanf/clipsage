@@ -1,4 +1,4 @@
-# ClipSage (formerly ClipperMVP)
+# ClipSage
 
 ## Advanced Clipboard History & Snippet Manager for Windows
 
