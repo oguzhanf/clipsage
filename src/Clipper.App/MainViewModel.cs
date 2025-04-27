@@ -15,9 +15,10 @@ namespace Clipper.App
         private readonly Clipper.Core.ClipboardService _clipboardService;
         private readonly Clipper.Core.Storage.HistoryStore _historyStore;
 
-        // Flag to track when we're copying from within the application
-        private bool _isInternalCopy = false;
-        private Guid _lastCopiedEntryId = Guid.Empty;
+        // Store the last clipboard content for duplicate detection
+        private string? _lastTextContent = null;
+        private byte[]? _lastImageContent = null;
+        private string[]? _lastFilePaths = null;
 
         private ObservableCollection<ClipboardEntryViewModel> _allEntries = new();
         public ObservableCollection<ClipboardEntryViewModel> ClipboardEntries { get; set; } = new();
@@ -128,13 +129,6 @@ namespace Clipper.App
         {
             try
             {
-                // Check if this is an internal copy operation
-                if (_isInternalCopy)
-                {
-                    Console.WriteLine("Ignoring clipboard change from internal copy operation");
-                    return;
-                }
-
                 // Apply input sanitization based on settings
                 if (!ShouldProcessClipboardEntry(entry))
                 {
@@ -156,17 +150,10 @@ namespace Clipper.App
                     FilePaths = entry.FilePaths
                 };
 
-                // Check if this entry has the same ID as the last copied entry
-                if (storageEntry.Id == _lastCopiedEntryId)
+                // Check for consecutive duplicates
+                if (Properties.Settings.Default.IgnoreDuplicates && IsConsecutiveDuplicate(storageEntry))
                 {
-                    Console.WriteLine("Ignoring clipboard change with same ID as last copied entry");
-                    return;
-                }
-
-                // Check for duplicates if enabled
-                if (Properties.Settings.Default.IgnoreDuplicates && IsDuplicate(storageEntry))
-                {
-                    Console.WriteLine("Ignoring duplicate clipboard entry");
+                    Console.WriteLine("Ignoring consecutive duplicate clipboard entry");
                     return;
                 }
 
@@ -256,85 +243,77 @@ namespace Clipper.App
             }
         }
 
-        private bool IsDuplicate(Clipper.Core.Storage.ClipboardEntry entry)
+        private bool IsConsecutiveDuplicate(Clipper.Core.Storage.ClipboardEntry entry)
         {
-            // Check if this entry is a duplicate of any existing entry
-            if (_allEntries.Count == 0)
-                return false;
+            // Check if this entry is a duplicate of the most recent entry
+            bool isDuplicate = false;
 
-            // Use a more efficient approach based on the entry type
             switch (entry.DataType)
             {
                 case Clipper.Core.Storage.ClipboardDataType.Text:
-                    // For text entries, we can do a simple string comparison
-                    if (!string.IsNullOrEmpty(entry.PlainText))
+                    // For text entries, compare with the last text content
+                    if (!string.IsNullOrEmpty(entry.PlainText) && entry.PlainText == _lastTextContent)
                     {
-                        return _allEntries.Any(e =>
-                            e.DataType == Clipper.Core.Storage.ClipboardDataType.Text &&
-                            e.PlainText == entry.PlainText);
+                        isDuplicate = true;
                     }
+                    // Update the last text content
+                    _lastTextContent = entry.PlainText;
                     break;
 
                 case Clipper.Core.Storage.ClipboardDataType.Image:
-                    // For images, we need to do a byte-by-byte comparison
-                    if (entry.ImageBytes != null && entry.ImageBytes.Length > 0)
+                    // For images, compare with the last image content
+                    if (entry.ImageBytes != null && _lastImageContent != null &&
+                        entry.ImageBytes.Length == _lastImageContent.Length)
                     {
-                        foreach (var existingEntry in _allEntries)
+                        bool imagesMatch = true;
+                        for (int i = 0; i < entry.ImageBytes.Length; i++)
                         {
-                            if (existingEntry.DataType == Clipper.Core.Storage.ClipboardDataType.Image &&
-                                existingEntry.ImageBytes != null &&
-                                existingEntry.ImageBytes.Length == entry.ImageBytes.Length)
+                            if (entry.ImageBytes[i] != _lastImageContent[i])
                             {
-                                bool imagesMatch = true;
-                                for (int i = 0; i < entry.ImageBytes.Length; i++)
-                                {
-                                    if (entry.ImageBytes[i] != existingEntry.ImageBytes[i])
-                                    {
-                                        imagesMatch = false;
-                                        break;
-                                    }
-                                }
-
-                                if (imagesMatch)
-                                    return true;
+                                imagesMatch = false;
+                                break;
                             }
                         }
+
+                        if (imagesMatch)
+                        {
+                            isDuplicate = true;
+                        }
                     }
+                    // Update the last image content
+                    _lastImageContent = entry.ImageBytes;
                     break;
 
                 case Clipper.Core.Storage.ClipboardDataType.FilePaths:
-                    // For file paths, compare the sorted arrays
-                    if (entry.FilePaths != null && entry.FilePaths.Length > 0)
+                    // For file paths, compare with the last file paths
+                    if (entry.FilePaths != null && _lastFilePaths != null &&
+                        entry.FilePaths.Length == _lastFilePaths.Length)
                     {
-                        var sortedPaths = entry.FilePaths.OrderBy(p => p).ToArray();
+                        // Sort both arrays for consistent comparison
+                        var sortedNewPaths = entry.FilePaths.OrderBy(p => p).ToArray();
+                        var sortedLastPaths = _lastFilePaths.OrderBy(p => p).ToArray();
 
-                        foreach (var existingEntry in _allEntries)
+                        bool pathsMatch = true;
+                        for (int i = 0; i < sortedNewPaths.Length; i++)
                         {
-                            if (existingEntry.DataType == Clipper.Core.Storage.ClipboardDataType.FilePaths &&
-                                existingEntry.FilePaths != null &&
-                                existingEntry.FilePaths.Length == entry.FilePaths.Length)
+                            if (sortedNewPaths[i] != sortedLastPaths[i])
                             {
-                                var existingSortedPaths = existingEntry.FilePaths.OrderBy(p => p).ToArray();
-                                bool pathsMatch = true;
-
-                                for (int i = 0; i < sortedPaths.Length; i++)
-                                {
-                                    if (sortedPaths[i] != existingSortedPaths[i])
-                                    {
-                                        pathsMatch = false;
-                                        break;
-                                    }
-                                }
-
-                                if (pathsMatch)
-                                    return true;
+                                pathsMatch = false;
+                                break;
                             }
                         }
+
+                        if (pathsMatch)
+                        {
+                            isDuplicate = true;
+                        }
                     }
+                    // Update the last file paths
+                    _lastFilePaths = entry.FilePaths;
                     break;
             }
 
-            return false;
+            return isDuplicate;
         }
 
         private void TrimHistoryIfNeeded()
@@ -421,15 +400,19 @@ namespace Clipper.App
         {
             try
             {
-                // Set the flag to indicate we're copying from within the application
-                _isInternalCopy = true;
-                _lastCopiedEntryId = entry.Id;
-
-                // Use a timer to reset the flag after a short delay
-                var resetTimer = new System.Threading.Timer(_ =>
+                // Update our last content trackers before copying to prevent duplicates
+                switch (entry.DataType)
                 {
-                    _isInternalCopy = false;
-                }, null, 1000, Timeout.Infinite);
+                    case Clipper.Core.Storage.ClipboardDataType.Text:
+                        _lastTextContent = entry.PlainText;
+                        break;
+                    case Clipper.Core.Storage.ClipboardDataType.Image:
+                        _lastImageContent = entry.ImageBytes;
+                        break;
+                    case Clipper.Core.Storage.ClipboardDataType.FilePaths:
+                        _lastFilePaths = entry.FilePaths;
+                        break;
+                }
 
                 if (entry.DataType == Clipper.Core.Storage.ClipboardDataType.Text)
                 {
@@ -631,9 +614,10 @@ namespace Clipper.App
             // Dispose the timer
             _cleanupTimer?.Dispose();
 
-            // Reset flags
-            _isInternalCopy = false;
-            _lastCopiedEntryId = Guid.Empty;
+            // Reset content trackers
+            _lastTextContent = null;
+            _lastImageContent = null;
+            _lastFilePaths = null;
         }
     }
 }
