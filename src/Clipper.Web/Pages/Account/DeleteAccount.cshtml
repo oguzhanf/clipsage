@@ -1,0 +1,94 @@
+@page
+@model DeleteAccountModel
+@{
+    ViewData["Title"] = "Delete Account";
+}
+
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold">Delete Account</h1>
+            <p class="lead">Permanently delete your account and all associated data.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="list-group">
+                <a href="/Account/Profile" class="list-group-item list-group-item-action">
+                    <i class="bi bi-person me-2"></i> Profile
+                </a>
+                <a href="/Account/Subscription" class="list-group-item list-group-item-action">
+                    <i class="bi bi-credit-card me-2"></i> Subscription
+                </a>
+                <a href="/Account/Devices" class="list-group-item list-group-item-action">
+                    <i class="bi bi-laptop me-2"></i> Devices
+                </a>
+                <a href="/Account/Security" class="list-group-item list-group-item-action">
+                    <i class="bi bi-shield-lock me-2"></i> Security
+                </a>
+                <a href="/Account/DeleteAccount" class="list-group-item list-group-item-action active text-white bg-danger">
+                    <i class="bi bi-trash me-2"></i> Delete Account
+                </a>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card border-danger shadow-sm">
+                <div class="card-body">
+                    <h2 class="h4 mb-4 text-danger">Warning: This action cannot be undone</h2>
+                    
+                    <div class="alert alert-warning">
+                        <h3 class="h5"><i class="bi bi-exclamation-triangle me-2"></i>What happens when you delete your account:</h3>
+                        <ul class="mb-0">
+                            <li>Your profile information will be permanently deleted</li>
+                            <li>All your subscription data will be removed</li>
+                            <li>Your clipboard history and snippets stored in our cloud will be erased</li>
+                            <li>You will lose access to all premium features</li>
+                            <li>This action cannot be reversed</li>
+                        </ul>
+                    </div>
+                    
+                    <p class="mt-4">If you're experiencing issues with our service, please <a href="/Contact">contact our support team</a> first - we're here to help!</p>
+                    
+                    <form method="post" class="mt-4">
+                        <div class="mb-3">
+                            <label for="confirmEmail" class="form-label">Confirm your email address</label>
+                            <input type="email" class="form-control" id="confirmEmail" name="ConfirmEmail" required 
+                                   placeholder="Enter your email address to confirm">
+                            <div class="form-text">Enter your email address (@Model.UserEmail) to confirm deletion.</div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="confirmDelete" name="ConfirmDelete" required>
+                            <label class="form-check-label" for="confirmDelete">
+                                I understand that this action is permanent and cannot be undone
+                            </label>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="deletionReason" class="form-label">Please tell us why you're leaving (optional)</label>
+                            <select class="form-select" id="deletionReason" name="DeletionReason">
+                                <option value="">Select a reason...</option>
+                                <option value="not-useful">I don't find the service useful</option>
+                                <option value="too-expensive">The service is too expensive</option>
+                                <option value="found-alternative">I found a better alternative</option>
+                                <option value="bugs">Too many bugs or issues</option>
+                                <option value="privacy">Privacy concerns</option>
+                                <option value="other">Other reason</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="feedback" class="form-label">Additional feedback (optional)</label>
+                            <textarea class="form-control" id="feedback" name="Feedback" rows="3" 
+                                      placeholder="Please share any additional feedback that could help us improve"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-danger">Permanently Delete My Account</button>
+                        <a href="/Account/Profile" class="btn btn-outline-secondary ms-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

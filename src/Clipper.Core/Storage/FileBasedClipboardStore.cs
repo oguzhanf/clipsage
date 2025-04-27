@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Clipper.Core.Logging;
 
 namespace Clipper.Core.Storage
 {

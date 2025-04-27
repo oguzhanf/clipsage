@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <ComponentGroup Id="PublishedComponents">
+      <Component Id="MainExecutable" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="Clipper_App_exe" Source="PublishedFiles\Clipper.App.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="CoreLibrary" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="Clipper_Core_dll" Source="PublishedFiles\Clipper.Core.dll" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

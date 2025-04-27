@@ -1,7 +1,10 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using Clipper.Core.Update;
 using MahApps.Metro.Controls;
 
 namespace Clipper.App
@@ -18,6 +21,21 @@ namespace Clipper.App
             InitializeComponent();
             _viewModel = new SettingsViewModel();
             DataContext = _viewModel;
+
+            // Update the last check time display
+            UpdateLastCheckTimeDisplay();
+        }
+
+        private void UpdateLastCheckTimeDisplay()
+        {
+            if (_viewModel.LastUpdateCheck > new DateTime(1900, 1, 1))
+            {
+                LastUpdateCheckText.Text = $"Last checked: {_viewModel.LastUpdateCheck:g}";
+            }
+            else
+            {
+                LastUpdateCheckText.Text = "Last checked: Never";
+            }
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
@@ -161,6 +179,145 @@ namespace Clipper.App
             catch
             {
                 return false;
+            }
+        }
+
+        private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Update UI to show we're checking
+                var button = (Button)sender;
+                var originalContent = button.Content;
+                button.Content = "Checking...";
+                button.IsEnabled = false;
+                UpdateStatusText.Visibility = Visibility.Collapsed;
+
+                // Check for updates
+                var updateChecker = UpdateChecker.Instance;
+                var updateInfo = await updateChecker.CheckForUpdateAsync();
+
+                // Update the last check time
+                _viewModel.LastUpdateCheck = DateTime.Now;
+                UpdateLastCheckTimeDisplay();
+
+                // Show the result
+                if (updateInfo != null && updateInfo.IsUpdateAvailable)
+                {
+                    UpdateStatusText.Text = $"Update available: v{updateInfo.VersionString}\n{updateInfo.ReleaseNotes}";
+                    UpdateStatusText.Foreground = new SolidColorBrush(Colors.Green);
+                    UpdateStatusText.Visibility = Visibility.Visible;
+
+                    // Ask if the user wants to download and install the update
+                    var result = MessageBox.Show(
+                        $"A new version of ClipperMVP is available: v{updateInfo.VersionString}\n\n{updateInfo.ReleaseNotes}\n\nWould you like to download and install this update now?",
+                        "Update Available",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Information);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        await DownloadAndInstallUpdate(updateInfo);
+                    }
+                }
+                else
+                {
+                    UpdateStatusText.Text = "You have the latest version.";
+                    UpdateStatusText.Foreground = new SolidColorBrush(Colors.Gray);
+                    UpdateStatusText.Visibility = Visibility.Visible;
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateStatusText.Text = $"Error checking for updates: {ex.Message}";
+                UpdateStatusText.Foreground = new SolidColorBrush(Colors.Red);
+                UpdateStatusText.Visibility = Visibility.Visible;
+            }
+            finally
+            {
+                // Restore the button
+                var button = (Button)sender;
+                button.Content = "Check for Updates Now";
+                button.IsEnabled = true;
+            }
+        }
+
+        private async Task DownloadAndInstallUpdate(UpdateInfo updateInfo)
+        {
+            try
+            {
+                // Create a progress dialog
+                var progressDialog = new ProgressDialog
+                {
+                    Owner = this,
+                    Title = "Downloading Update",
+                    Message = $"Downloading ClipperMVP v{updateInfo.VersionString}...",
+                    IsIndeterminate = false
+                };
+
+                // Create a progress reporter
+                var progress = new Progress<double>(value =>
+                {
+                    progressDialog.Progress = value;
+                    progressDialog.Message = $"Downloading ClipperMVP v{updateInfo.VersionString}... {value:P0}";
+                });
+
+                // Start the download in the background
+                var updateChecker = UpdateChecker.Instance;
+                var downloadTask = updateChecker.DownloadUpdateAsync(updateInfo, progress);
+
+                // Show the progress dialog
+                progressDialog.Show();
+
+                // Wait for the download to complete
+                var installerPath = await downloadTask;
+
+                // Close the progress dialog
+                progressDialog.Close();
+
+                // Check if the download was successful
+                if (string.IsNullOrEmpty(installerPath))
+                {
+                    MessageBox.Show(
+                        "Failed to download the update. Please try again later.",
+                        "Download Failed",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                    return;
+                }
+
+                // Ask the user if they want to install now
+                var result = MessageBox.Show(
+                    "The update has been downloaded. Do you want to install it now?\n\nThe application will close during installation.",
+                    "Install Update",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    // Install the update
+                    if (updateChecker.InstallUpdate(installerPath))
+                    {
+                        // Close the application
+                        Application.Current.Shutdown();
+                    }
+                    else
+                    {
+                        MessageBox.Show(
+                            "Failed to start the installer. You can find it at:\n" + installerPath,
+                            "Installation Failed",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error downloading update: {ex.Message}",
+                    "Download Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
     }

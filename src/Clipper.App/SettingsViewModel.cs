@@ -193,6 +193,49 @@ namespace Clipper.App
             }
         }
 
+        // Update settings
+        private bool _checkForUpdates;
+        public bool CheckForUpdates
+        {
+            get => _checkForUpdates;
+            set
+            {
+                if (_checkForUpdates != value)
+                {
+                    _checkForUpdates = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private bool _autoInstallUpdates;
+        public bool AutoInstallUpdates
+        {
+            get => _autoInstallUpdates;
+            set
+            {
+                if (_autoInstallUpdates != value)
+                {
+                    _autoInstallUpdates = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private DateTime _lastUpdateCheck;
+        public DateTime LastUpdateCheck
+        {
+            get => _lastUpdateCheck;
+            set
+            {
+                if (_lastUpdateCheck != value)
+                {
+                    _lastUpdateCheck = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public SettingsViewModel()
         {
             LoadSettings();
@@ -215,6 +258,9 @@ namespace Clipper.App
             CachingFolderConfigured = Properties.Settings.Default.CachingFolderConfigured;
             CacheFiles = Properties.Settings.Default.CacheFiles;
             MaxFileCacheSize = Properties.Settings.Default.MaxFileCacheSize;
+            CheckForUpdates = Properties.Settings.Default.CheckForUpdates;
+            AutoInstallUpdates = Properties.Settings.Default.AutoInstallUpdates;
+            LastUpdateCheck = Properties.Settings.Default.LastUpdateCheck;
         }
 
         public void SaveSettings()
@@ -233,6 +279,9 @@ namespace Clipper.App
             Properties.Settings.Default.CachingFolderConfigured = CachingFolderConfigured;
             Properties.Settings.Default.CacheFiles = CacheFiles;
             Properties.Settings.Default.MaxFileCacheSize = MaxFileCacheSize;
+            Properties.Settings.Default.CheckForUpdates = CheckForUpdates;
+            Properties.Settings.Default.AutoInstallUpdates = AutoInstallUpdates;
+            Properties.Settings.Default.LastUpdateCheck = LastUpdateCheck;
 
             Properties.Settings.Default.Save();
 

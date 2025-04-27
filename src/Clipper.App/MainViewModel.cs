@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using System.IO;
 using Clipper.App.Properties;
+using Clipper.Core.Logging;
 
 namespace Clipper.App
 {
@@ -96,6 +97,7 @@ namespace Clipper.App
             catch (Exception ex)
             {
                 MessageBox.Show($"Error loading clipboard history: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Logger.Instance.Error("Error loading clipboard history", ex);
             }
         }
 
@@ -154,6 +156,7 @@ namespace Clipper.App
                 if (Properties.Settings.Default.IgnoreDuplicates && IsConsecutiveDuplicate(storageEntry))
                 {
                     Console.WriteLine("Ignoring consecutive duplicate clipboard entry");
+                    Logger.Instance.Debug("Ignoring consecutive duplicate clipboard entry");
                     return;
                 }
 
@@ -193,6 +196,7 @@ namespace Clipper.App
             catch (Exception ex)
             {
                 MessageBox.Show($"Error processing clipboard change: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Logger.Instance.Error("Error processing clipboard change", ex);
             }
         }
 
@@ -383,8 +387,9 @@ namespace Clipper.App
             }
             catch (Exception ex)
             {
-                // Just log to console if there's an error
+                // Log the error
                 Console.WriteLine($"Error showing notification: {ex.Message}");
+                Logger.Instance.Error("Error showing notification", ex);
             }
         }
 
@@ -483,6 +488,7 @@ namespace Clipper.App
             catch (Exception ex)
             {
                 MessageBox.Show($"Error copying to clipboard: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Logger.Instance.Error("Error copying to clipboard", ex);
             }
 
             // Return a completed task since this method doesn't actually perform any async operations
@@ -499,6 +505,7 @@ namespace Clipper.App
             catch (Exception ex)
             {
                 MessageBox.Show($"Error deleting entry: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Logger.Instance.Error("Error deleting entry", ex);
             }
         }
 
@@ -513,6 +520,7 @@ namespace Clipper.App
             catch (Exception ex)
             {
                 MessageBox.Show($"Error pinning entry: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Logger.Instance.Error("Error pinning entry", ex);
             }
         }
 
@@ -574,6 +582,7 @@ namespace Clipper.App
             catch (Exception ex)
             {
                 Console.WriteLine($"Error caching files: {ex.Message}");
+                Logger.Instance.Error("Error caching files", ex);
                 // We don't want to throw the exception here as it would disrupt the application flow
                 // Just log it and continue
             }
@@ -592,6 +601,7 @@ namespace Clipper.App
             catch (Exception ex)
             {
                 Console.WriteLine($"Error during cleanup and load: {ex.Message}");
+                Logger.Instance.Error("Error during cleanup and load", ex);
             }
         }
 
@@ -605,6 +615,7 @@ namespace Clipper.App
                 if (removedCount > 0)
                 {
                     Console.WriteLine($"Removed {removedCount} duplicate entries from the database");
+                    Logger.Instance.Info($"Removed {removedCount} duplicate entries from the database");
 
                     // Reload the entries if we removed any duplicates
                     await Task.Run(() => LoadRecentEntriesAsync());
@@ -613,21 +624,33 @@ namespace Clipper.App
             catch (Exception ex)
             {
                 Console.WriteLine($"Error cleaning up duplicates: {ex.Message}");
+                Logger.Instance.Error("Error cleaning up duplicates", ex);
             }
         }
 
         public void Dispose()
         {
-            // Unsubscribe from events
-            _clipboardService.ClipboardChanged -= OnClipboardChanged;
+            try
+            {
+                // Log disposal
+                Logger.Instance.Info("Disposing MainViewModel");
 
-            // Dispose the timer
-            _cleanupTimer?.Dispose();
+                // Unsubscribe from events
+                _clipboardService.ClipboardChanged -= OnClipboardChanged;
 
-            // Reset content trackers
-            _lastTextContent = null;
-            _lastImageContent = null;
-            _lastFilePaths = null;
+                // Dispose the timer
+                _cleanupTimer?.Dispose();
+
+                // Reset content trackers
+                _lastTextContent = null;
+                _lastImageContent = null;
+                _lastFilePaths = null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error disposing MainViewModel: {ex.Message}");
+                Logger.Instance.Error("Error disposing MainViewModel", ex);
+            }
         }
     }
 }

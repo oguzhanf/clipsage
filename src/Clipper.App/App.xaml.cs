@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Windows;
 using Clipper.App.Properties;
+using Clipper.Core.Logging;
 
 namespace Clipper.App
 {
@@ -36,6 +37,11 @@ namespace Clipper.App
 
                     ShowCachingFolderDialog();
                 }
+                else
+                {
+                    // Initialize the logger
+                    InitializeLogger();
+                }
             }
 
             // Check if we should start minimized
@@ -63,6 +69,9 @@ namespace Clipper.App
                 Clipper.App.Properties.Settings.Default.CachingFolder = dialog.SelectedFolder;
                 Clipper.App.Properties.Settings.Default.CachingFolderConfigured = true;
                 Clipper.App.Properties.Settings.Default.Save();
+
+                // Initialize the logger now that we have a caching folder
+                InitializeLogger();
             }
             else
             {
@@ -77,10 +86,42 @@ namespace Clipper.App
             }
         }
 
+        /// <summary>
+        /// Initializes the logger with the current caching folder.
+        /// </summary>
+        private void InitializeLogger()
+        {
+            try
+            {
+                string cachingFolder = Clipper.App.Properties.Settings.Default.CachingFolder;
+                if (!string.IsNullOrEmpty(cachingFolder) && Directory.Exists(cachingFolder))
+                {
+                    // Initialize the logger
+                    Logger.Instance.Initialize(cachingFolder);
+                    Logger.Instance.Info("Application started");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing logger: {ex.Message}");
+            }
+        }
+
         protected override void OnExit(ExitEventArgs e)
         {
             // Save any application settings
             Clipper.App.Properties.Settings.Default.Save();
+
+            // Log application exit
+            try
+            {
+                Logger.Instance.Info("Application exiting");
+                Logger.Instance.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error shutting down logger: {ex.Message}");
+            }
 
             // Dispose of the database connection manager
             try
@@ -90,6 +131,7 @@ namespace Clipper.App
             catch (Exception ex)
             {
                 Console.WriteLine($"Error disposing database connection: {ex.Message}");
+                Logger.Instance.Error("Error disposing database connection", ex);
             }
 
             base.OnExit(e);

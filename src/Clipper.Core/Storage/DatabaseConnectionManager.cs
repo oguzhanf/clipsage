@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Clipper.Core.Logging;
 using LiteDB;
 
 namespace Clipper.Core.Storage
@@ -32,7 +33,7 @@ namespace Clipper.Core.Storage
             }
 
             _databasePath = databasePath;
-            
+
             try
             {
                 // Create the directory if it doesn't exist
@@ -54,7 +55,7 @@ namespace Clipper.Core.Storage
 
                 // Open the database with exclusive access
                 _database = new LiteDatabase(connectionString);
-                
+
                 // Create indexes for better performance
                 var collection = _database.GetCollection<ClipboardEntry>("history");
                 collection.EnsureIndex(x => x.Timestamp);
@@ -62,6 +63,7 @@ namespace Clipper.Core.Storage
             catch (Exception ex)
             {
                 Console.WriteLine($"Error initializing database: {ex.Message}");
+                Logger.Instance.Error($"Error initializing database: {databasePath}", ex);
                 throw;
             }
         }
@@ -74,11 +76,11 @@ namespace Clipper.Core.Storage
             }
 
             await _semaphore.WaitAsync();
-            
+
             try
             {
                 Exception lastException = null;
-                
+
                 for (int attempt = 0; attempt < _maxRetries; attempt++)
                 {
                     try
@@ -88,10 +90,10 @@ namespace Clipper.Core.Storage
                     catch (LiteException ex) when (IsFileLockException(ex))
                     {
                         lastException = ex;
-                        
+
                         // Wait before retrying
                         await Task.Delay(_retryDelayMs * (attempt + 1));
-                        
+
                         // If this is the last attempt, try to recover the connection
                         if (attempt == _maxRetries - 2)
                         {
@@ -99,7 +101,7 @@ namespace Clipper.Core.Storage
                             {
                                 // Try to close and reopen the database
                                 _database?.Dispose();
-                                
+
                                 // Reopen the database
                                 var connectionString = new ConnectionString
                                 {
@@ -108,12 +110,13 @@ namespace Clipper.Core.Storage
                                     ReadOnly = false,
                                     Upgrade = true
                                 };
-                                
+
                                 _database = new LiteDatabase(connectionString);
                             }
                             catch (Exception recoveryEx)
                             {
                                 Console.WriteLine($"Error recovering database connection: {recoveryEx.Message}");
+                                Logger.Instance.Error("Error recovering database connection", recoveryEx);
                             }
                         }
                     }
@@ -123,9 +126,11 @@ namespace Clipper.Core.Storage
                         throw;
                     }
                 }
-                
+
                 // If we got here, all retries failed
-                throw new Exception($"Failed to execute database operation after {_maxRetries} attempts", lastException);
+                var errorMessage = $"Failed to execute database operation after {_maxRetries} attempts";
+                Logger.Instance.Error(errorMessage, lastException);
+                throw new Exception(errorMessage, lastException);
             }
             finally
             {
@@ -136,8 +141,8 @@ namespace Clipper.Core.Storage
         private bool IsFileLockException(Exception ex)
         {
             // Check if the exception is related to file locking
-            return ex.Message.Contains("locked") || 
-                   ex.Message.Contains("access") || 
+            return ex.Message.Contains("locked") ||
+                   ex.Message.Contains("access") ||
                    ex.Message.Contains("sharing violation") ||
                    ex.Message.Contains("being used by another process");
         }

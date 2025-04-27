@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Clipper.Core.Logging;
 using LiteDB;
 
 namespace Clipper.Core.Storage
@@ -45,8 +46,61 @@ namespace Clipper.Core.Storage
             _dbManager.Initialize(_databasePath);
         }
 
+        public async Task<bool> IsDuplicateAsync(ClipboardEntry entry)
+        {
+            try
+            {
+                return await _dbManager.ExecuteWithRetryAsync(db =>
+                {
+                    var collection = db.GetCollection<ClipboardEntry>("history");
+
+                    // First, filter by data type to reduce the number of entries to check
+                    var sameTypeEntries = collection.Find(e => e.DataType == entry.DataType).ToList();
+
+                    // For text entries, we can do a more efficient query
+                    if (entry.DataType == ClipboardDataType.Text && !string.IsNullOrEmpty(entry.PlainText))
+                    {
+                        // Check if there's an exact text match
+                        var textMatch = sameTypeEntries.FirstOrDefault(e => e.PlainText == entry.PlainText);
+                        if (textMatch != null)
+                        {
+                            return true;
+                        }
+                    }
+                    // For other types, we need to do a full comparison
+                    else
+                    {
+                        // Check all entries of the same type
+                        foreach (var existingEntry in sameTypeEntries)
+                        {
+                            if (ClipboardEntryComparer.AreEntriesEqual(entry, existingEntry))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+
+                    return false;
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error checking for duplicate entries: {ex.Message}");
+                Logger.Instance.Error("Error checking for duplicate entries", ex);
+                return false; // If there's an error, assume it's not a duplicate
+            }
+        }
+
         public async Task AddAsync(ClipboardEntry entry)
         {
+            // Check for duplicates before adding
+            if (await IsDuplicateAsync(entry))
+            {
+                Console.WriteLine("Duplicate entry detected, skipping...");
+                Logger.Instance.Debug("Duplicate entry detected, skipping...");
+                return;
+            }
+
             // Save to database using the connection manager with retry logic
             try
             {
@@ -70,6 +124,7 @@ namespace Clipper.Core.Storage
             catch (Exception ex)
             {
                 Console.WriteLine($"Error saving clipboard entry to database: {ex.Message}");
+                Logger.Instance.Error("Error saving clipboard entry to database", ex);
                 // Log the error but continue to try saving to the file system
             }
 
@@ -81,6 +136,7 @@ namespace Clipper.Core.Storage
             catch (Exception ex)
             {
                 Console.WriteLine($"Error saving clipboard entry to file: {ex.Message}");
+                Logger.Instance.Error("Error saving clipboard entry to file", ex);
                 // We don't want to throw the exception here as it would disrupt the application flow
                 // Just log it and continue
             }
@@ -93,15 +149,99 @@ namespace Clipper.Core.Storage
                 return await _dbManager.ExecuteWithRetryAsync(db =>
                 {
                     var collection = db.GetCollection<ClipboardEntry>("history");
-                    return collection.FindAll().OrderByDescending(e => e.Timestamp).Take(limit).ToList();
+
+                    // Get all entries sorted by timestamp (newest first)
+                    var allEntries = collection.FindAll().OrderByDescending(e => e.Timestamp).ToList();
+
+                    // Use a more efficient approach to filter duplicates
+                    var uniqueEntries = new List<ClipboardEntry>();
+
+                    // Use dictionaries to track seen content by type
+                    var seenTextContent = new HashSet<string>();
+                    var seenImageHashes = new HashSet<string>();
+                    var seenFilePathSets = new HashSet<string>();
+
+                    foreach (var entry in allEntries)
+                    {
+                        bool isDuplicate = false;
+
+                        switch (entry.DataType)
+                        {
+                            case ClipboardDataType.Text:
+                                // For text, we can use a simple string comparison
+                                if (!string.IsNullOrEmpty(entry.PlainText))
+                                {
+                                    isDuplicate = !seenTextContent.Add(entry.PlainText);
+                                }
+                                break;
+
+                            case ClipboardDataType.Image:
+                                // For images, create a simple hash of the first few bytes
+                                if (entry.ImageBytes != null && entry.ImageBytes.Length > 0)
+                                {
+                                    // Create a simple hash from the image bytes
+                                    string imageHash = ComputeSimpleHash(entry.ImageBytes);
+                                    isDuplicate = !seenImageHashes.Add(imageHash);
+                                }
+                                break;
+
+                            case ClipboardDataType.FilePaths:
+                                // For file paths, create a hash of the sorted paths
+                                if (entry.FilePaths != null && entry.FilePaths.Length > 0)
+                                {
+                                    string pathsHash = string.Join("|", entry.FilePaths.OrderBy(p => p));
+                                    isDuplicate = !seenFilePathSets.Add(pathsHash);
+                                }
+                                break;
+                        }
+
+                        if (!isDuplicate)
+                        {
+                            uniqueEntries.Add(entry);
+
+                            // Stop once we have enough entries
+                            if (uniqueEntries.Count >= limit)
+                                break;
+                        }
+                    }
+
+                    return uniqueEntries;
                 });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error retrieving recent clipboard entries: {ex.Message}");
+                Logger.Instance.Error("Error retrieving recent clipboard entries", ex);
                 // Return an empty list if there's an error
                 return new List<ClipboardEntry>();
             }
+        }
+
+        // Helper method to compute a simple hash for image bytes
+        private string ComputeSimpleHash(byte[] data)
+        {
+            // Use a simple hash algorithm for quick comparison
+            // This is not cryptographically secure but is sufficient for duplicate detection
+            if (data == null || data.Length == 0)
+                return string.Empty;
+
+            // Use at most 1024 bytes for the hash to keep it fast
+            int bytesToUse = Math.Min(data.Length, 1024);
+
+            // Simple hash algorithm
+            uint hash = 0;
+            for (int i = 0; i < bytesToUse; i++)
+            {
+                hash += data[i];
+                hash += (hash << 10);
+                hash ^= (hash >> 6);
+            }
+
+            hash += (hash << 3);
+            hash ^= (hash >> 11);
+            hash += (hash << 15);
+
+            return hash.ToString();
         }
 
         public async Task DeleteAsync(Guid id)
@@ -127,6 +267,7 @@ namespace Clipper.Core.Storage
             catch (Exception ex)
             {
                 Console.WriteLine($"Error deleting clipboard entry from database: {ex.Message}");
+                Logger.Instance.Error("Error deleting clipboard entry from database", ex);
                 // Continue to try deleting from the file system
             }
 
@@ -181,6 +322,7 @@ namespace Clipper.Core.Storage
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error deleting clipboard entry file: {ex.Message}");
+                    Logger.Instance.Error("Error deleting clipboard entry file", ex);
                     // We don't want to throw the exception here as it would disrupt the application flow
                     // Just log it and continue
                 }
@@ -206,6 +348,110 @@ namespace Clipper.Core.Storage
             catch (Exception ex)
             {
                 Console.WriteLine($"Error pinning clipboard entry: {ex.Message}");
+                Logger.Instance.Error("Error pinning clipboard entry", ex);
+            }
+        }
+
+        /// <summary>
+        /// Removes duplicate entries from the database
+        /// </summary>
+        /// <returns>The number of duplicates removed</returns>
+        public async Task<int> CleanupDuplicatesAsync()
+        {
+            try
+            {
+                return await _dbManager.ExecuteWithRetryAsync(db =>
+                {
+                    var collection = db.GetCollection<ClipboardEntry>("history");
+                    var allEntries = collection.FindAll().OrderByDescending(e => e.Timestamp).ToList();
+
+                    // Track unique content
+                    var seenTextContent = new Dictionary<string, Guid>();
+                    var seenImageHashes = new Dictionary<string, Guid>();
+                    var seenFilePathSets = new Dictionary<string, Guid>();
+
+                    // Track entries to delete
+                    var duplicatesToRemove = new List<Guid>();
+
+                    foreach (var entry in allEntries)
+                    {
+                        bool isDuplicate = false;
+
+                        switch (entry.DataType)
+                        {
+                            case ClipboardDataType.Text:
+                                if (!string.IsNullOrEmpty(entry.PlainText))
+                                {
+                                    if (seenTextContent.TryGetValue(entry.PlainText, out Guid existingId))
+                                    {
+                                        // This is a duplicate
+                                        isDuplicate = true;
+                                        duplicatesToRemove.Add(entry.Id);
+                                    }
+                                    else
+                                    {
+                                        // First time seeing this content
+                                        seenTextContent[entry.PlainText] = entry.Id;
+                                    }
+                                }
+                                break;
+
+                            case ClipboardDataType.Image:
+                                if (entry.ImageBytes != null && entry.ImageBytes.Length > 0)
+                                {
+                                    string imageHash = ComputeSimpleHash(entry.ImageBytes);
+                                    if (seenImageHashes.TryGetValue(imageHash, out Guid existingId))
+                                    {
+                                        // This is a duplicate
+                                        isDuplicate = true;
+                                        duplicatesToRemove.Add(entry.Id);
+                                    }
+                                    else
+                                    {
+                                        // First time seeing this content
+                                        seenImageHashes[imageHash] = entry.Id;
+                                    }
+                                }
+                                break;
+
+                            case ClipboardDataType.FilePaths:
+                                if (entry.FilePaths != null && entry.FilePaths.Length > 0)
+                                {
+                                    string pathsHash = string.Join("|", entry.FilePaths.OrderBy(p => p));
+                                    if (seenFilePathSets.TryGetValue(pathsHash, out Guid existingId))
+                                    {
+                                        // This is a duplicate
+                                        isDuplicate = true;
+                                        duplicatesToRemove.Add(entry.Id);
+                                    }
+                                    else
+                                    {
+                                        // First time seeing this content
+                                        seenFilePathSets[pathsHash] = entry.Id;
+                                    }
+                                }
+                                break;
+                        }
+                    }
+
+                    // Delete all duplicates
+                    int removedCount = 0;
+                    foreach (var id in duplicatesToRemove)
+                    {
+                        if (collection.Delete(id))
+                        {
+                            removedCount++;
+                        }
+                    }
+
+                    return removedCount;
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error cleaning up duplicate entries: {ex.Message}");
+                Logger.Instance.Error("Error cleaning up duplicate entries", ex);
+                return 0;
             }
         }
     }
@@ -227,27 +473,5 @@ namespace Clipper.Core.Storage
         FilePaths
     }
 
-    public class ClipboardService
-    {
-        private static readonly Lazy<ClipboardService> _instance = new(() => new ClipboardService());
-        public static ClipboardService Instance => _instance.Value;
 
-        public event EventHandler<ClipboardEntry>? ClipboardChanged;
-
-        private ClipboardService()
-        {
-            // Hook into clipboard viewer chain (Win32 API)
-            // AddClipboardFormatListener logic here
-        }
-
-        public void RaiseClipboardChanged(ClipboardEntry entry)
-        {
-            ClipboardChanged?.Invoke(this, entry);
-        }
-
-        public async Task SetAsync(ClipboardEntry entry)
-        {
-            // Logic to set clipboard content (text or image)
-        }
-    }
 }

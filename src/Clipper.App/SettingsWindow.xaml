@@ -94,6 +94,20 @@
                         </DockPanel>
                     </StackPanel>
                 </GroupBox>
+
+                <!-- Update Settings -->
+                <GroupBox Header="Updates" Margin="0,0,0,10">
+                    <StackPanel Margin="10">
+                        <CheckBox Content="Automatically check for updates" IsChecked="{Binding CheckForUpdates}" Margin="0,5"/>
+                        <CheckBox Content="Automatically install updates" IsChecked="{Binding AutoInstallUpdates}"
+                                  IsEnabled="{Binding CheckForUpdates}" Margin="20,5,0,5"/>
+                        <DockPanel Margin="0,10,0,5">
+                            <Button Content="Check for Updates Now" Click="CheckForUpdates_Click" Width="150" HorizontalAlignment="Left"/>
+                            <TextBlock x:Name="LastUpdateCheckText" Text="Last checked: Never" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </DockPanel>
+                        <TextBlock x:Name="UpdateStatusText" Visibility="Collapsed" Margin="0,5" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </GroupBox>
             </StackPanel>
         </ScrollViewer>
 

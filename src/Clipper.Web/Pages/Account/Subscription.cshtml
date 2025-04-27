@@ -1,0 +1,153 @@
+@page
+@model SubscriptionModel
+@{
+    ViewData["Title"] = "My Subscription";
+}
+
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold">My Subscription</h1>
+            <p class="lead">Manage your subscription plan and billing information.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="list-group">
+                <a href="/Account/Profile" class="list-group-item list-group-item-action">
+                    <i class="bi bi-person me-2"></i> Profile
+                </a>
+                <a href="/Account/Subscription" class="list-group-item list-group-item-action active">
+                    <i class="bi bi-credit-card me-2"></i> Subscription
+                </a>
+                <a href="/Account/Devices" class="list-group-item list-group-item-action">
+                    <i class="bi bi-laptop me-2"></i> Devices
+                </a>
+                <a href="/Account/Security" class="list-group-item list-group-item-action">
+                    <i class="bi bi-shield-lock me-2"></i> Security
+                </a>
+                <a href="/Account/DeleteAccount" class="list-group-item list-group-item-action text-danger">
+                    <i class="bi bi-trash me-2"></i> Delete Account
+                </a>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="h4 mb-0">Current Plan</h2>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h3 class="h5">@Model.CurrentPlan</h3>
+                            <p class="text-muted mb-0">Billing cycle: @Model.BillingCycle</p>
+                            <p class="text-muted">Next billing date: @Model.NextBillingDate.ToString("MMMM dd, yyyy")</p>
+                            
+                            <div class="mt-3">
+                                <a href="/Account/ChangePlan" class="btn btn-outline-primary btn-sm me-2">Change Plan</a>
+                                <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelSubscriptionModal">Cancel Subscription</button>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <h4 class="h5 mb-0">$@Model.Price.ToString("0.00")</h4>
+                            <p class="text-muted">per @(Model.BillingCycle.ToLower())</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="h4 mb-4">Payment Method</h2>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            <i class="bi bi-credit-card fs-3"></i>
+                        </div>
+                        <div>
+                            <h3 class="h6 mb-0">@Model.CardType •••• @Model.LastFourDigits</h3>
+                            <p class="text-muted mb-0">Expires @Model.CardExpiry</p>
+                        </div>
+                        <div class="ms-auto">
+                            <a href="/Account/UpdatePayment" class="btn btn-outline-secondary btn-sm">Update</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h4 mb-4">Billing History</h2>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Invoice</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var invoice in Model.BillingHistory)
+                                {
+                                    <tr>
+                                        <td>@invoice.Date.ToString("MMM dd, yyyy")</td>
+                                        <td>@invoice.Description</td>
+                                        <td>$@invoice.Amount.ToString("0.00")</td>
+                                        <td>
+                                            @if (invoice.Status == "Paid")
+                                            {
+                                                <span class="badge bg-success">Paid</span>
+                                            }
+                                            else if (invoice.Status == "Pending")
+                                            {
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">Failed</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a href="@invoice.InvoiceUrl" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-download me-1"></i> PDF
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Subscription Modal -->
+<div class="modal fade" id="cancelSubscriptionModal" tabindex="-1" aria-labelledby="cancelSubscriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelSubscriptionModalLabel">Cancel Subscription</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel your subscription? You will lose access to premium features at the end of your current billing period.</p>
+                <p>If you're experiencing issues with our service, please <a href="/Contact">contact our support team</a> first - we're here to help!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Subscription</button>
+                <form method="post" asp-page-handler="CancelSubscription">
+                    <button type="submit" class="btn btn-danger">Cancel Subscription</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
