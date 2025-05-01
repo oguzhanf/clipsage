@@ -11,7 +11,7 @@ Write-Host "Building ClipSage MSI installer..." -ForegroundColor Cyan
 
 try {
     # Get the current version from Directory.Build.props
-    $buildPropsPath = Join-Path $PSScriptRoot "Directory.Build.props"
+    $buildPropsPath = Join-Path (Split-Path $PSScriptRoot -Parent) "Directory.Build.props"
     $content = Get-Content $buildPropsPath
     $versionLine = $content | Where-Object { $_ -match '<Version>(.*)</Version>' }
     $version = ($versionLine -replace '<Version>(.*)</Version>', '$1').Trim()
@@ -19,7 +19,8 @@ try {
     Write-Host "Using version: $version" -ForegroundColor Yellow
 
     # Set paths
-    $binDir = Join-Path $PSScriptRoot "bin"
+    $rootDir = Split-Path $PSScriptRoot -Parent
+    $binDir = Join-Path $rootDir "bin"
     $publishDir = Join-Path $binDir "ClipSage-$version"
     $outputPath = Join-Path $binDir "ClipSage-Setup-$version.msi"
     $tempDir = Join-Path $binDir "temp-wix"
@@ -48,7 +49,7 @@ try {
         dotnet build -c $Configuration
 
         # Publish the application
-        $appProjectPath = Join-Path $PSScriptRoot "ClipSage.App\ClipSage.App.csproj"
+        $appProjectPath = Join-Path $rootDir "ClipSage.App\ClipSage.App.csproj"
         Write-Host "Publishing from: $appProjectPath" -ForegroundColor Yellow
         Write-Host "Publishing to: $publishDir" -ForegroundColor Yellow
 

@@ -17,6 +17,11 @@ namespace ClipSage.Core.Update
         private static readonly string _updateUrl = "https://api.github.com/repos/oguzhanf/clipsage/releases";
         private static readonly string _downloadBaseUrl = "https://github.com/oguzhanf/clipsage/releases/download";
 
+        /// <summary>
+        /// Gets the URL used for checking updates
+        /// </summary>
+        public string UpdateUrl => _updateUrl;
+
         private static UpdateChecker? _instance;
         private static readonly object _lock = new object();
 
@@ -54,20 +59,34 @@ namespace ClipSage.Core.Update
         /// <summary>
         /// Checks if an update is available
         /// </summary>
+        /// <param name="progressCallback">Optional callback for progress updates</param>
         /// <returns>Update information if available, null otherwise</returns>
-        public async Task<UpdateInfo?> CheckForUpdateAsync()
+        public async Task<UpdateInfo?> CheckForUpdateAsync(Action<string>? progressCallback = null)
         {
             try
             {
+                // Report progress
+                progressCallback?.Invoke("Setting up request to GitHub API...");
+
                 // Set up the request with proper headers for GitHub API
                 var request = new HttpRequestMessage(HttpMethod.Get, _updateUrl);
                 request.Headers.Add("User-Agent", "ClipSage");
                 request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
+                // Report progress
+                progressCallback?.Invoke("Connecting to GitHub API...");
+
                 // Get the response
                 var response = await _httpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
+
+                // Report progress
+                progressCallback?.Invoke("Receiving data from GitHub...");
+
                 var content = await response.Content.ReadAsStringAsync();
+
+                // Report progress
+                progressCallback?.Invoke("Parsing release information...");
 
                 // Parse the GitHub release information
                 using var doc = JsonDocument.Parse(content);
@@ -77,12 +96,15 @@ namespace ClipSage.Core.Update
                 if (root.ValueKind != JsonValueKind.Array || root.GetArrayLength() == 0)
                 {
                     Debug.WriteLine("No releases found.");
+                    progressCallback?.Invoke("No releases found.");
                     return null;
                 }
 
                 // Get the first (latest) release
                 var latestRelease = root[0];
-                Debug.WriteLine($"Found release: {latestRelease.GetProperty("name").GetString()}");
+                var releaseName = latestRelease.GetProperty("name").GetString() ?? "Unknown";
+                Debug.WriteLine($"Found release: {releaseName}");
+                progressCallback?.Invoke($"Found latest release: {releaseName}");
 
                 // Extract version from tag name (e.g., "v1.0.0" -> "1.0.0")
                 var tagName = latestRelease.GetProperty("tag_name").GetString() ?? "v0.0.0";
@@ -106,10 +128,16 @@ namespace ClipSage.Core.Update
                 // Check if this is a newer version
                 var isUpdateAvailable = latestVersion > CurrentVersion;
 
+                progressCallback?.Invoke($"Comparing versions - Latest: {latestVersion}, Current: {CurrentVersion}");
+
                 if (!isUpdateAvailable)
                 {
+                    progressCallback?.Invoke("No update available. You have the latest version.");
                     return null;
                 }
+
+                progressCallback?.Invoke($"Update available: v{versionString}");
+                progressCallback?.Invoke("Gathering update details...");
 
                 // Create update info
                 var updateInfo = new UpdateInfo
@@ -132,16 +160,21 @@ namespace ClipSage.Core.Update
                         {
                             updateInfo.InstallerFileName = name;
                             updateInfo.InstallerSizeBytes = asset.GetProperty("size").GetInt64();
+                            progressCallback?.Invoke($"Found installer: {name} ({FormatFileSize(updateInfo.InstallerSizeBytes)})");
                             break;
                         }
                     }
                 }
 
+                progressCallback?.Invoke("Update check completed successfully.");
+
                 return updateInfo;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error checking for updates: {ex.Message}");
+                var errorMessage = $"Error checking for updates: {ex.Message}";
+                Debug.WriteLine(errorMessage);
+                progressCallback?.Invoke(errorMessage);
                 return null;
             }
         }
@@ -222,6 +255,26 @@ namespace ClipSage.Core.Update
                 Debug.WriteLine($"Error installing update: {ex.Message}");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Formats a file size in bytes to a human-readable string
+        /// </summary>
+        /// <param name="bytes">The size in bytes</param>
+        /// <returns>A formatted string (e.g., "1.23 MB")</returns>
+        private string FormatFileSize(long bytes)
+        {
+            string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
+            int counter = 0;
+            decimal number = bytes;
+
+            while (Math.Round(number / 1024) >= 1)
+            {
+                number /= 1024;
+                counter++;
+            }
+
+            return $"{number:n2} {suffixes[counter]}";
         }
     }
 }
