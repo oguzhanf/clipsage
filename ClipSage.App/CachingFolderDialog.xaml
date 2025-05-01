@@ -35,6 +35,9 @@
             <LineBreak/>
             <LineBreak/>
             <Run FontWeight="Bold">Recommendation:</Run> Choose a folder within OneDrive, Google Drive, Dropbox, or another cloud storage service to automatically sync your clipboard data across multiple computers.
+            <LineBreak/>
+            <LineBreak/>
+            If you've used ClipSage before, you can select your existing cache folder and your clipboard history will be preserved.
         </TextBlock>
 
         <!-- Folder Label -->
@@ -69,7 +72,7 @@
 
                 <TextBlock Grid.Column="1" TextWrapping="Wrap" Foreground="#D32F2F"
                            FontWeight="SemiBold" FontSize="13">
-                    Note: A caching folder is required to use ClipSage. The application cannot start without a valid caching folder.
+                    Note: A caching folder is required to use ClipSage. If you select a folder with existing ClipSage cache data, it will be reused. The application cannot start without a valid caching folder.
                 </TextBlock>
             </Grid>
         </Border>

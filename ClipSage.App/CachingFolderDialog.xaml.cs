@@ -43,7 +43,7 @@ namespace ClipSage.App
         {
             using (var dialog = new FolderBrowserDialog())
             {
-                dialog.Description = "Select an empty folder for caching clipboard data";
+                dialog.Description = "Select a folder for caching clipboard data";
                 dialog.UseDescriptionForTitle = true;
 
                 // If a folder is already selected, start from there
@@ -80,22 +80,22 @@ namespace ClipSage.App
                         }
                     }
 
-                    // Check if the folder is empty
-                    if (!IsFolderEmpty(selectedPath))
+                    // Check if the folder contains ClipSage cache files
+                    if (ContainsClipSageCache(selectedPath))
                     {
                         var result = System.Windows.MessageBox.Show(
-                            "The selected folder is not empty. ClipSage requires an empty folder for caching. Do you want to select a different folder?",
-                            "Folder Not Empty",
+                            "This folder appears to contain existing ClipSage cache data. Would you like to reuse this cache folder?",
+                            "Existing Cache Detected",
                             MessageBoxButton.YesNo,
-                            MessageBoxImage.Warning);
+                            MessageBoxImage.Information);
 
-                        if (result == MessageBoxResult.Yes)
+                        if (result == MessageBoxResult.No)
                         {
-                            // User wants to select a different folder
+                            // User doesn't want to reuse the cache folder
                             BrowseButton_Click(sender, e);
                             return;
                         }
-                        // If user selects No, we'll use the non-empty folder anyway
+                        // If user selects Yes, we'll reuse the existing cache folder
                     }
 
                     _isManuallyEditing = true;
@@ -112,9 +112,26 @@ namespace ClipSage.App
             }
         }
 
-        private bool IsFolderEmpty(string folderPath)
+        /// <summary>
+        /// Checks if the folder contains ClipSage cache files or folders
+        /// </summary>
+        /// <param name="folderPath">The folder path to check</param>
+        /// <returns>True if the folder contains ClipSage cache files or folders</returns>
+        private bool ContainsClipSageCache(string folderPath)
         {
-            return !Directory.EnumerateFileSystemEntries(folderPath).Any();
+            // Check for the history.db file
+            if (File.Exists(Path.Combine(folderPath, "history.db")))
+                return true;
+
+            // Check for cache subfolders
+            string[] cacheFolders = { "Text", "Images", "FilePaths", "Files" };
+            foreach (var folder in cacheFolders)
+            {
+                if (Directory.Exists(Path.Combine(folderPath, folder)))
+                    return true;
+            }
+
+            return false;
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
@@ -164,18 +181,23 @@ namespace ClipSage.App
                 }
             }
 
-            // Final check if the folder is empty
-            if (!IsFolderEmpty(_selectedFolder))
+            // Check if the folder contains non-ClipSage files
+            if (!Directory.Exists(_selectedFolder) || !ContainsClipSageCache(_selectedFolder))
             {
-                var result = System.Windows.MessageBox.Show(
-                    "The selected folder is not empty. Using a non-empty folder may cause issues. Are you sure you want to continue?",
-                    "Folder Not Empty",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning);
-
-                if (result == MessageBoxResult.No)
+                // Only warn if the folder exists and contains other files
+                if (Directory.Exists(_selectedFolder) && Directory.EnumerateFileSystemEntries(_selectedFolder).Any())
                 {
-                    return;
+                    var result = System.Windows.MessageBox.Show(
+                        "The selected folder contains files that don't appear to be ClipSage cache files. " +
+                        "ClipSage will create its own cache structure in this folder without modifying existing files. Continue?",
+                        "Non-Cache Files Detected",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Information);
+
+                    if (result == MessageBoxResult.No)
+                    {
+                        return;
+                    }
                 }
             }
 
@@ -187,10 +209,10 @@ namespace ClipSage.App
         {
             // Show help information
             System.Windows.MessageBox.Show(
-                "ClipSage requires an empty folder for caching clipboard data.\n\n" +
+                "ClipSage needs a folder for caching clipboard data.\n\n" +
                 "For best results:\n" +
                 "1. Choose a folder in a cloud storage service (OneDrive, Google Drive, Dropbox)\n" +
-                "2. Make sure the folder is empty\n" +
+                "2. If you've used ClipSage before, you can reuse your existing cache folder\n" +
                 "3. Ensure you have write permissions to the folder\n\n" +
                 "This allows your clipboard data to be synced across multiple devices.",
                 "ClipSage Caching Help",

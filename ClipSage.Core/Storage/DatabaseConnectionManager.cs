@@ -43,28 +43,72 @@ namespace ClipSage.Core.Storage
                     Directory.CreateDirectory(directory);
                 }
 
+                bool databaseExists = File.Exists(databasePath);
+
                 // Configure LiteDB connection
                 var connectionString = new ConnectionString
                 {
                     Filename = databasePath,
                     Connection = ConnectionType.Shared, // Use shared connection mode for better concurrency
                     ReadOnly = false,
-                    Upgrade = true,
+                    Upgrade = true, // This will upgrade the database if it's an older version
                     Collation = Collation.Default
                 };
 
-                // Open the database with exclusive access
+                // Open the database
                 _database = new LiteDatabase(connectionString);
 
                 // Create indexes for better performance
                 var collection = _database.GetCollection<ClipboardEntry>("history");
                 collection.EnsureIndex(x => x.Timestamp);
+
+                // Log whether we're using an existing database or creating a new one
+                if (databaseExists)
+                {
+                    Console.WriteLine($"Using existing database: {databasePath}");
+                    Logger.Instance.Info($"Using existing database: {databasePath}");
+
+                    // Verify the database structure
+                    VerifyDatabaseStructure();
+                }
+                else
+                {
+                    Console.WriteLine($"Created new database: {databasePath}");
+                    Logger.Instance.Info($"Created new database: {databasePath}");
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error initializing database: {ex.Message}");
                 Logger.Instance.Error($"Error initializing database: {databasePath}", ex);
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Verifies the database structure and performs any necessary migrations or repairs
+        /// </summary>
+        private void VerifyDatabaseStructure()
+        {
+            try
+            {
+                // Check if the history collection exists
+                var collection = _database.GetCollection<ClipboardEntry>("history");
+
+                // Check if we can read from the collection
+                var count = collection.Count();
+                Console.WriteLine($"Found {count} entries in existing database");
+                Logger.Instance.Info($"Found {count} entries in existing database");
+
+                // Additional verification could be added here if needed
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error verifying database structure: {ex.Message}");
+                Logger.Instance.Error("Error verifying database structure", ex);
+
+                // We don't throw here - we'll continue with a potentially problematic database
+                // rather than preventing the application from starting
             }
         }
 

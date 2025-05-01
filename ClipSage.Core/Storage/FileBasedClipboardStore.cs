@@ -23,10 +23,48 @@ namespace ClipSage.Core.Storage
 
             // Create directories if they don't exist
             Directory.CreateDirectory(_cacheFolderPath);
-            Directory.CreateDirectory(_textFolderPath);
-            Directory.CreateDirectory(_imageFolderPath);
-            Directory.CreateDirectory(_filePathsFolderPath);
-            Directory.CreateDirectory(_filesCacheFolderPath);
+
+            // Check if each directory exists before creating it
+            // This preserves any existing content in these folders
+            if (!Directory.Exists(_textFolderPath))
+                Directory.CreateDirectory(_textFolderPath);
+
+            if (!Directory.Exists(_imageFolderPath))
+                Directory.CreateDirectory(_imageFolderPath);
+
+            if (!Directory.Exists(_filePathsFolderPath))
+                Directory.CreateDirectory(_filePathsFolderPath);
+
+            if (!Directory.Exists(_filesCacheFolderPath))
+                Directory.CreateDirectory(_filesCacheFolderPath);
+
+            // Log whether we're using existing folders or creating new ones
+            LogFolderStatus();
+        }
+
+        /// <summary>
+        /// Logs the status of the cache folders
+        /// </summary>
+        private void LogFolderStatus()
+        {
+            try
+            {
+                // Count files in each folder to determine if they existed before
+                int textFiles = Directory.Exists(_textFolderPath) ? Directory.GetFiles(_textFolderPath).Length : 0;
+                int imageFiles = Directory.Exists(_imageFolderPath) ? Directory.GetFiles(_imageFolderPath).Length : 0;
+                int filePathsFiles = Directory.Exists(_filePathsFolderPath) ? Directory.GetFiles(_filePathsFolderPath).Length : 0;
+                int cachedFiles = Directory.Exists(_filesCacheFolderPath) ?
+                    Directory.GetDirectories(_filesCacheFolderPath).Length : 0;
+
+                // Log the counts
+                Console.WriteLine($"Cache folder status: Text={textFiles}, Images={imageFiles}, FilePaths={filePathsFiles}, CachedFiles={cachedFiles}");
+                Logger.Instance.Info($"Cache folder status: Text={textFiles}, Images={imageFiles}, FilePaths={filePathsFiles}, CachedFiles={cachedFiles}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error logging folder status: {ex.Message}");
+                Logger.Instance.Error("Error logging folder status", ex);
+            }
         }
 
         public async Task SaveClipboardEntryAsync(ClipboardEntry entry)
