@@ -45,8 +45,7 @@ namespace ClipSage.App
             // Register global hotkey
             RegisterGlobalHotkey();
 
-            // Update caching folder status
-            UpdateCachingFolderStatus();
+
 
             // Check for updates on startup if enabled
             if (Properties.Settings.Default.CheckForUpdates)
@@ -227,25 +226,10 @@ namespace ClipSage.App
             var settingsWindow = new SettingsWindow();
             settingsWindow.Owner = this;
 
-            if (settingsWindow.ShowDialog() == true)
-            {
-                // Update the status bar if settings were saved
-                UpdateCachingFolderStatus();
-            }
+            settingsWindow.ShowDialog();
         }
 
-        private void UpdateCachingFolderStatus()
-        {
-            if (Properties.Settings.Default.CachingFolderConfigured &&
-                !string.IsNullOrEmpty(Properties.Settings.Default.CachingFolder))
-            {
-                CachingFolderStatus.Text = $"Caching Folder: {Properties.Settings.Default.CachingFolder}";
-            }
-            else
-            {
-                CachingFolderStatus.Text = "Caching Folder: Not configured";
-            }
-        }
+
 
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
