@@ -283,10 +283,10 @@ namespace ClipSage.App
 
         private void CheckForUpdates_Click(object sender, RoutedEventArgs e)
         {
-            // Open the settings window with the updates tab selected
-            var settingsWindow = new SettingsWindow();
-            settingsWindow.Owner = this;
-            settingsWindow.ShowDialog();
+            // Open the update check dialog
+            var updateCheckDialog = new UpdateCheckDialog();
+            updateCheckDialog.Owner = this;
+            updateCheckDialog.ShowDialog();
         }
 
         private async Task CheckForUpdatesAsync()
@@ -303,7 +303,8 @@ namespace ClipSage.App
 
                 // Check for updates
                 var updateChecker = UpdateChecker.Instance;
-                var updateInfo = await updateChecker.CheckForUpdateAsync();
+                var updateInfo = await updateChecker.CheckForUpdateAsync(
+                    progress => Console.WriteLine($"Update check: {progress}"));
 
                 // Update the last check time
                 Properties.Settings.Default.LastUpdateCheck = DateTime.Now;
@@ -320,16 +321,16 @@ namespace ClipSage.App
                             $"ClipSage v{updateInfo.VersionString} is available. Click here to update.",
                             BalloonIcon.Info);
 
-                        // Handle balloon click to open the settings window
+                        // Handle balloon click to open the update check dialog
                         _trayIcon.TrayBalloonTipClicked += (s, args) =>
                         {
                             Show();
                             WindowState = WindowState.Normal;
                             Activate();
 
-                            var settingsWindow = new SettingsWindow();
-                            settingsWindow.Owner = this;
-                            settingsWindow.ShowDialog();
+                            var updateCheckDialog = new UpdateCheckDialog();
+                            updateCheckDialog.Owner = this;
+                            updateCheckDialog.ShowDialog();
                         };
                     }
 

@@ -182,64 +182,18 @@ namespace ClipSage.App
             }
         }
 
-        private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
+        private void CheckForUpdates_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                // Update UI to show we're checking
-                var button = (Button)sender;
-                var originalContent = button.Content;
-                button.Content = "Checking...";
-                button.IsEnabled = false;
-                UpdateStatusText.Visibility = Visibility.Collapsed;
+            // Open the update check dialog
+            var updateCheckDialog = new UpdateCheckDialog();
+            updateCheckDialog.Owner = this;
 
-                // Check for updates
-                var updateChecker = UpdateChecker.Instance;
-                var updateInfo = await updateChecker.CheckForUpdateAsync();
+            // Show the dialog
+            updateCheckDialog.ShowDialog();
 
-                // Update the last check time
-                _viewModel.LastUpdateCheck = DateTime.Now;
-                UpdateLastCheckTimeDisplay();
-
-                // Show the result
-                if (updateInfo != null && updateInfo.IsUpdateAvailable)
-                {
-                    UpdateStatusText.Text = $"Update available: v{updateInfo.VersionString}\n{updateInfo.ReleaseNotes}";
-                    UpdateStatusText.Foreground = new SolidColorBrush(Colors.Green);
-                    UpdateStatusText.Visibility = Visibility.Visible;
-
-                    // Ask if the user wants to download and install the update
-                    var result = MessageBox.Show(
-                        $"A new version of ClipSage is available: v{updateInfo.VersionString}\n\n{updateInfo.ReleaseNotes}\n\nWould you like to download and install this update now?",
-                        "Update Available",
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Information);
-
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        await DownloadAndInstallUpdate(updateInfo);
-                    }
-                }
-                else
-                {
-                    UpdateStatusText.Text = "You have the latest version.";
-                    UpdateStatusText.Foreground = new SolidColorBrush(Colors.Gray);
-                    UpdateStatusText.Visibility = Visibility.Visible;
-                }
-            }
-            catch (Exception ex)
-            {
-                UpdateStatusText.Text = $"Error checking for updates: {ex.Message}";
-                UpdateStatusText.Foreground = new SolidColorBrush(Colors.Red);
-                UpdateStatusText.Visibility = Visibility.Visible;
-            }
-            finally
-            {
-                // Restore the button
-                var button = (Button)sender;
-                button.Content = "Check for Updates Now";
-                button.IsEnabled = true;
-            }
+            // Update the last check time display after the dialog is closed
+            // (the dialog will have updated the settings if a check was performed)
+            UpdateLastCheckTimeDisplay();
         }
 
         private async Task DownloadAndInstallUpdate(UpdateInfo updateInfo)

@@ -7,10 +7,10 @@
         xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
         mc:Ignorable="d"
         Title="ClipSage Settings"
-        Height="400" Width="500"
+        MinHeight="500" MinWidth="550"
+        Height="600" Width="550"
         WindowStartupLocation="CenterOwner"
-        GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
-        ResizeMode="NoResize">
+        GlowBrush="{DynamicResource MahApps.Brushes.Accent}">
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -58,13 +58,17 @@
                 <GroupBox Header="Caching" Margin="0,0,0,10">
                     <StackPanel Margin="10">
                         <TextBlock Text="Caching Folder:" VerticalAlignment="Center" Margin="0,5"/>
-                        <DockPanel Margin="0,5">
-                            <TextBox x:Name="CachingFolderTextBox" Text="{Binding CachingFolder, UpdateSourceTrigger=PropertyChanged}"
-                                     IsReadOnly="False" Margin="0,0,10,0" Width="300"
+                        <Grid Margin="0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="CachingFolderTextBox" Grid.Column="0" Text="{Binding CachingFolder, UpdateSourceTrigger=PropertyChanged}"
+                                     IsReadOnly="False" Margin="0,0,10,0"
                                      TextChanged="CachingFolderTextBox_TextChanged"
                                      ToolTip="Enter a folder path or use the Browse button to select one"/>
-                            <Button Content="Browse..." Click="BrowseCachingFolder_Click" Width="80"/>
-                        </DockPanel>
+                            <Button Grid.Column="1" Content="Browse..." Click="BrowseCachingFolder_Click" Width="80"/>
+                        </Grid>
                         <TextBlock Text="Tip: Use a folder in OneDrive, Google Drive, or Dropbox to sync your clipboard data between systems."
                                    TextWrapping="Wrap" Margin="0,5" Foreground="Gray"/>
                         <TextBlock x:Name="CachingFolderWarning" Visibility="Collapsed"
@@ -111,9 +115,9 @@
             </StackPanel>
         </ScrollViewer>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="Cancel" Width="80" Margin="0,0,10,0" Click="CancelButton_Click"/>
-            <Button Content="Save" Width="80" Click="SaveButton_Click"
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,5">
+            <Button Content="Cancel" Width="80" Height="35" Margin="0,0,10,0" Click="CancelButton_Click"/>
+            <Button Content="Save" Width="80" Height="35" Click="SaveButton_Click"
                     Background="{DynamicResource MahApps.Brushes.Accent}" Foreground="White"/>
         </StackPanel>
     </Grid>

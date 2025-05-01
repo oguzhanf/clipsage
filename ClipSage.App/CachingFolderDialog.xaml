@@ -7,66 +7,75 @@
         xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
         mc:Ignorable="d"
         Title="ClipSage - Caching Folder Setup"
-        Height="400" Width="600"
+        MinHeight="450" MinWidth="550"
+        SizeToContent="WidthAndHeight"
         WindowStartupLocation="CenterScreen"
-        GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
-        ResizeMode="NoResize">
+        GlowBrush="{DynamicResource MahApps.Brushes.Accent}">
 
     <Grid Margin="25">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" MinHeight="100"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Header -->
         <TextBlock Grid.Row="0" Text="Caching Folder Setup" FontSize="26" FontWeight="Bold" Margin="0,0,0,20"
                    Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
 
-        <StackPanel Grid.Row="1">
-            <TextBlock TextWrapping="Wrap" Margin="0,0,0,25" LineHeight="24">
-                <Run FontWeight="Bold" FontSize="16">Welcome to ClipSage!</Run>
-                <LineBreak/>
-                <LineBreak/>
-                To enable clipboard data syncing between your devices, please select a folder where ClipSage will store its cache files.
-                <LineBreak/>
-                <LineBreak/>
-                <Run FontWeight="Bold">Recommendation:</Run> Choose a folder within OneDrive, Google Drive, Dropbox, or another cloud storage service to automatically sync your clipboard data across multiple computers.
-            </TextBlock>
+        <!-- Welcome Text -->
+        <TextBlock Grid.Row="1" TextWrapping="Wrap" Margin="0,0,0,20" LineHeight="24">
+            <Run FontWeight="Bold" FontSize="16">Welcome to ClipSage!</Run>
+            <LineBreak/>
+            <LineBreak/>
+            To enable clipboard data syncing between your devices, please select a folder where ClipSage will store its cache files.
+            <LineBreak/>
+            <LineBreak/>
+            <Run FontWeight="Bold">Recommendation:</Run> Choose a folder within OneDrive, Google Drive, Dropbox, or another cloud storage service to automatically sync your clipboard data across multiple computers.
+        </TextBlock>
 
-            <TextBlock Text="Caching Folder:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,10,0,8"/>
-            <Grid Margin="0,0,0,20">
+        <!-- Folder Label -->
+        <TextBlock Grid.Row="2" Text="Caching Folder:" FontWeight="SemiBold" Margin="0,10,0,5"/>
+
+        <!-- Folder Selection -->
+        <Grid Grid.Row="3" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="CachingFolderTextBox" Grid.Column="0" Height="35" Margin="0,0,10,0"
+                     Padding="8,0" VerticalContentAlignment="Center"
+                     TextChanged="CachingFolderTextBox_TextChanged"/>
+
+            <Button Grid.Column="1" Content="BROWSE..." Click="BrowseButton_Click"
+                    Width="90" Height="35" FontWeight="SemiBold"/>
+        </Grid>
+
+        <!-- Warning Message -->
+        <Border Grid.Row="4" Background="#FFFDE7" BorderBrush="#FFECB3" BorderThickness="1"
+                Margin="0,10,0,0" Padding="10" CornerRadius="4" VerticalAlignment="Top">
+            <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" BorderThickness="1" BorderBrush="#BDBDBD" CornerRadius="3" Margin="0,0,10,0">
-                    <TextBox x:Name="CachingFolderTextBox" IsReadOnly="False" Padding="5,7" BorderThickness="0"
-                         TextChanged="CachingFolderTextBox_TextChanged" ToolTip="Enter a folder path or use the Browse button to select one"/>
-                </Border>
-                <Button Content="BROWSE..." Click="BrowseButton_Click" Width="90" Height="35" Grid.Column="1"
-                        HorizontalAlignment="Right" FontWeight="SemiBold"/>
+
+                <TextBlock Grid.Column="0" Text="⚠" FontSize="18" Foreground="#FF8F00"
+                           VerticalAlignment="Top" Margin="0,0,10,0"/>
+
+                <TextBlock Grid.Column="1" TextWrapping="Wrap" Foreground="#D32F2F"
+                           FontWeight="SemiBold" FontSize="13">
+                    Note: A caching folder is required to use ClipSage. The application cannot start without a valid caching folder.
+                </TextBlock>
             </Grid>
+        </Border>
 
-            <!-- Warning message with icon -->
-            <Border Background="#FFFDE7" BorderBrush="#FFECB3" BorderThickness="1" Margin="0,15,0,0" Padding="10" CornerRadius="4">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Warning Icon -->
-                    <TextBlock Grid.Column="0" Text="⚠" FontSize="18" Foreground="#FF8F00" VerticalAlignment="Top" Margin="0,0,10,0"/>
-
-                    <!-- Warning Text -->
-                    <TextBlock Grid.Column="1" TextWrapping="Wrap" Foreground="#D32F2F" FontWeight="SemiBold" FontSize="13">
-                        Note: A caching folder is required to use ClipSage. The application cannot start without a valid caching folder.
-                    </TextBlock>
-                </Grid>
-            </Border>
-        </StackPanel>
-
-        <Grid Grid.Row="2" Margin="0,25,0,0">
+        <!-- Buttons -->
+        <Grid Grid.Row="5" Margin="0,20,0,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
