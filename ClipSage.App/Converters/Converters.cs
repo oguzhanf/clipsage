@@ -63,12 +63,36 @@ namespace ClipSage.App.Converters
             {
                 return dataType switch
                 {
-                    ClipboardDataType.Text => "T",
-                    ClipboardDataType.Image => "I",
-                    _ => "?",
+                    ClipboardDataType.Text => "📄", // Document icon
+                    ClipboardDataType.Image => "🖼️", // Picture icon
+                    ClipboardDataType.FilePaths => "📁", // Folder icon
+                    _ => "❓", // Question mark for unknown types
                 };
             }
-            return "?";
+            return "❓";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class DataTypeToLabelConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is ClipboardDataType dataType)
+            {
+                return dataType switch
+                {
+                    ClipboardDataType.Text => "TXT",
+                    ClipboardDataType.Image => "IMG",
+                    ClipboardDataType.FilePaths => "PATH",
+                    _ => "???",
+                };
+            }
+            return "???";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

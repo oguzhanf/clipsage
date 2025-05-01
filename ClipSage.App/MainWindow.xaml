@@ -108,12 +108,29 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Width="24" Height="24" Margin="0,0,10,0"
-                                        Background="{Binding DataType, Converter={StaticResource DataTypeToColorConverter}}"
-                                        CornerRadius="12">
-                                    <TextBlock Text="{Binding DataType, Converter={StaticResource DataTypeToIconConverter}}"
-                                               Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                </Border>
+                                <Grid Grid.Column="0" Margin="0,0,10,0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Icon -->
+                                    <Border Grid.Row="0" Width="32" Height="32" Margin="0,0,0,2"
+                                            Background="{Binding DataType, Converter={StaticResource DataTypeToColorConverter}}"
+                                            CornerRadius="16">
+                                        <TextBlock Text="{Binding DataType, Converter={StaticResource DataTypeToIconConverter}}"
+                                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   FontSize="16" />
+                                    </Border>
+
+                                    <!-- Label -->
+                                    <Border Grid.Row="1" Background="#E0E0E0" CornerRadius="2"
+                                            HorizontalAlignment="Center" Padding="4,1">
+                                        <TextBlock Text="{Binding DataType, Converter={StaticResource DataTypeToLabelConverter}}"
+                                                   Foreground="#424242" FontSize="8" FontWeight="Bold"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                </Grid>
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="{Binding DisplayText}" TextTrimming="CharacterEllipsis" />
                                     <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:g}'}" FontSize="10" Foreground="Gray" />
@@ -124,7 +141,7 @@
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                            <Setter Property="Padding" Value="5" />
+                            <Setter Property="Padding" Value="5,10" />
                             <Setter Property="BorderThickness" Value="0,0,0,1" />
                             <Setter Property="BorderBrush" Value="#E0E0E0" />
                         </Style>

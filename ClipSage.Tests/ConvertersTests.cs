@@ -131,7 +131,7 @@ namespace ClipSage.Tests
             // Assert
             Assert.NotNull(result);
             Assert.IsType<string>(result);
-            Assert.Equal("T", result);
+            Assert.Equal("📄", result);
         }
 
         [Fact]
@@ -146,7 +146,7 @@ namespace ClipSage.Tests
             // Assert
             Assert.NotNull(result);
             Assert.IsType<string>(result);
-            Assert.Equal("I", result);
+            Assert.Equal("🖼️", result);
         }
 
         [Fact]
@@ -161,7 +161,51 @@ namespace ClipSage.Tests
             // Assert
             Assert.NotNull(result);
             Assert.IsType<string>(result);
-            Assert.Equal("?", result);
+            Assert.Equal("📁", result);
+        }
+        [Fact]
+        public void DataTypeToLabelConverter_TextType_ShouldReturnExpectedLabel()
+        {
+            // Arrange
+            var converter = new DataTypeToLabelConverter();
+
+            // Act
+            var result = converter.Convert(ClipboardDataType.Text, typeof(string), null, _culture);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.IsType<string>(result);
+            Assert.Equal("TXT", result);
+        }
+
+        [Fact]
+        public void DataTypeToLabelConverter_ImageType_ShouldReturnExpectedLabel()
+        {
+            // Arrange
+            var converter = new DataTypeToLabelConverter();
+
+            // Act
+            var result = converter.Convert(ClipboardDataType.Image, typeof(string), null, _culture);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.IsType<string>(result);
+            Assert.Equal("IMG", result);
+        }
+
+        [Fact]
+        public void DataTypeToLabelConverter_FilePathsType_ShouldReturnExpectedLabel()
+        {
+            // Arrange
+            var converter = new DataTypeToLabelConverter();
+
+            // Act
+            var result = converter.Convert(ClipboardDataType.FilePaths, typeof(string), null, _culture);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.IsType<string>(result);
+            Assert.Equal("PATH", result);
         }
     }
 }

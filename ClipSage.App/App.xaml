@@ -20,6 +20,7 @@
             <converters:NullToBooleanConverter x:Key="NullToBooleanConverter" />
             <converters:DataTypeToColorConverter x:Key="DataTypeToColorConverter" />
             <converters:DataTypeToIconConverter x:Key="DataTypeToIconConverter" />
+            <converters:DataTypeToLabelConverter x:Key="DataTypeToLabelConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
