@@ -1,0 +1,25 @@
+﻿<Application x:Class="ClipSage.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:ClipSage.App"
+             xmlns:converters="clr-namespace:ClipSage.App.Converters"
+             xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- MahApps.Metro resource dictionaries -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <!-- Theme setting -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Light.Blue.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Custom converters -->
+            <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+            <converters:NullToBooleanConverter x:Key="NullToBooleanConverter" />
+            <converters:DataTypeToColorConverter x:Key="DataTypeToColorConverter" />
+            <converters:DataTypeToIconConverter x:Key="DataTypeToIconConverter" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

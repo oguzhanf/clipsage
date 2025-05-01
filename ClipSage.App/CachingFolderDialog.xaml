@@ -1,0 +1,84 @@
+<metro:MetroWindow x:Class="ClipSage.App.CachingFolderDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ClipSage.App"
+        xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
+        mc:Ignorable="d"
+        Title="ClipSage - Caching Folder Setup"
+        Height="400" Width="600"
+        WindowStartupLocation="CenterScreen"
+        GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
+        ResizeMode="NoResize">
+
+    <Grid Margin="25">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Caching Folder Setup" FontSize="26" FontWeight="Bold" Margin="0,0,0,20"
+                   Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+
+        <StackPanel Grid.Row="1">
+            <TextBlock TextWrapping="Wrap" Margin="0,0,0,25" LineHeight="24">
+                <Run FontWeight="Bold" FontSize="16">Welcome to ClipSage!</Run>
+                <LineBreak/>
+                <LineBreak/>
+                To enable clipboard data syncing between your devices, please select a folder where ClipSage will store its cache files.
+                <LineBreak/>
+                <LineBreak/>
+                <Run FontWeight="Bold">Recommendation:</Run> Choose a folder within OneDrive, Google Drive, Dropbox, or another cloud storage service to automatically sync your clipboard data across multiple computers.
+            </TextBlock>
+
+            <TextBlock Text="Caching Folder:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,10,0,8"/>
+            <Grid Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" BorderThickness="1" BorderBrush="#BDBDBD" CornerRadius="3" Margin="0,0,10,0">
+                    <TextBox x:Name="CachingFolderTextBox" IsReadOnly="False" Padding="5,7" BorderThickness="0"
+                         TextChanged="CachingFolderTextBox_TextChanged" ToolTip="Enter a folder path or use the Browse button to select one"/>
+                </Border>
+                <Button Content="BROWSE..." Click="BrowseButton_Click" Width="90" Height="35" Grid.Column="1"
+                        HorizontalAlignment="Right" FontWeight="SemiBold"/>
+            </Grid>
+
+            <!-- Warning message with icon -->
+            <Border Background="#FFFDE7" BorderBrush="#FFECB3" BorderThickness="1" Margin="0,15,0,0" Padding="10" CornerRadius="4">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Warning Icon -->
+                    <TextBlock Grid.Column="0" Text="⚠" FontSize="18" Foreground="#FF8F00" VerticalAlignment="Top" Margin="0,0,10,0"/>
+
+                    <!-- Warning Text -->
+                    <TextBlock Grid.Column="1" TextWrapping="Wrap" Foreground="#D32F2F" FontWeight="SemiBold" FontSize="13">
+                        Note: A caching folder is required to use ClipSage. The application cannot start without a valid caching folder.
+                    </TextBlock>
+                </Grid>
+            </Border>
+        </StackPanel>
+
+        <Grid Grid.Row="2" Margin="0,25,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="1" Content="HELP" Width="90" Height="35" Margin="0,0,15,0"
+                    Click="SkipButton_Click" FontWeight="SemiBold"/>
+
+            <Button Grid.Column="2" Content="CONTINUE" Width="120" Height="35"
+                    Click="SaveButton_Click" FontWeight="SemiBold"
+                    Background="{DynamicResource MahApps.Brushes.Accent}" Foreground="White"/>
+        </Grid>
+    </Grid>
+</metro:MetroWindow>
