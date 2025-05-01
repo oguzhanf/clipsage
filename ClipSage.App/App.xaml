@@ -3,8 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:ClipSage.App"
              xmlns:converters="clr-namespace:ClipSage.App.Converters"
-             xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
-             StartupUri="MainWindow.xaml">
+             xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -21,6 +20,7 @@
             <converters:DataTypeToColorConverter x:Key="DataTypeToColorConverter" />
             <converters:DataTypeToIconConverter x:Key="DataTypeToIconConverter" />
             <converters:DataTypeToLabelConverter x:Key="DataTypeToLabelConverter" />
+            <converters:BooleanToMonitoringTextConverter x:Key="BooleanToMonitoringTextConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -47,6 +47,51 @@ namespace ClipSage.App
             }
         }
 
+        private bool _isMonitoring;
+        public bool IsMonitoring
+        {
+            get => _isMonitoring;
+            private set
+            {
+                if (_isMonitoring != value)
+                {
+                    _isMonitoring = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(MonitoringStatusText));
+                }
+            }
+        }
+
+        private string _updateStatusText = string.Empty;
+        public string UpdateStatusText
+        {
+            get => _updateStatusText;
+            set
+            {
+                if (_updateStatusText != value)
+                {
+                    _updateStatusText = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private string _eventStatusText = string.Empty;
+        public string EventStatusText
+        {
+            get => _eventStatusText;
+            set
+            {
+                if (_eventStatusText != value)
+                {
+                    _eventStatusText = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public string MonitoringStatusText => IsMonitoring ? "Monitoring: Active" : "Monitoring: Paused";
+
         private System.Threading.Timer _cleanupTimer;
 
         public MainViewModel()
@@ -67,6 +112,9 @@ namespace ClipSage.App
             // Subscribe to clipboard changes
             _clipboardService.ClipboardChanged += OnClipboardChanged;
 
+            // Initialize monitoring state
+            IsMonitoring = _clipboardService.IsMonitoring;
+
             // Clean up duplicates and load recent entries
             CleanupAndLoadEntriesAsync();
 
@@ -76,6 +124,12 @@ namespace ClipSage.App
                 null,
                 TimeSpan.FromMinutes(30),
                 TimeSpan.FromMinutes(30));
+        }
+
+        public void ToggleMonitoring()
+        {
+            _clipboardService.ToggleMonitoring();
+            IsMonitoring = _clipboardService.IsMonitoring;
         }
 
         private async void LoadRecentEntriesAsync()
@@ -344,52 +398,44 @@ namespace ClipSage.App
         {
             try
             {
-                // Get the main window
-                if (Application.Current.MainWindow is MainWindow mainWindow)
+                string message;
+
+                switch (entry.DataType)
                 {
-                    // Access the tray icon through reflection since it's a private field
-                    var trayIconField = mainWindow.GetType().GetField("_trayIcon", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    var trayIcon = trayIconField?.GetValue(mainWindow) as Hardcodet.Wpf.TaskbarNotification.TaskbarIcon;
-
-                    if (trayIcon != null)
-                    {
-                        string title = "Clipboard Captured";
-                        string message;
-
-                        switch (entry.DataType)
+                    case ClipSage.Core.Storage.ClipboardDataType.Text:
+                        message = $"Captured: Text \"{GetTruncatedText(entry.PlainText, 40)}\"";
+                        break;
+                    case ClipSage.Core.Storage.ClipboardDataType.Image:
+                        message = "Captured: Image";
+                        break;
+                    case ClipSage.Core.Storage.ClipboardDataType.FilePaths:
+                        if (entry.FilePaths != null && entry.FilePaths.Length > 0)
                         {
-                            case ClipSage.Core.Storage.ClipboardDataType.Text:
-                                message = GetTruncatedText(entry.PlainText, 40);
-                                break;
-                            case ClipSage.Core.Storage.ClipboardDataType.Image:
-                                message = "[Image copied]";
-                                break;
-                            case ClipSage.Core.Storage.ClipboardDataType.FilePaths:
-                                if (entry.FilePaths != null && entry.FilePaths.Length > 0)
-                                {
-                                    message = entry.FilePaths.Length == 1
-                                        ? $"[File copied: {Path.GetFileName(entry.FilePaths[0])}]"
-                                        : $"[{entry.FilePaths.Length} files copied]";
-                                }
-                                else
-                                {
-                                    message = "[Files copied]";
-                                }
-                                break;
-                            default:
-                                message = "[Clipboard content captured]";
-                                break;
+                            message = entry.FilePaths.Length == 1
+                                ? $"Captured: File \"{Path.GetFileName(entry.FilePaths[0])}\""
+                                : $"Captured: {entry.FilePaths.Length} files";
                         }
-
-                        trayIcon.ShowBalloonTip(title, message, Hardcodet.Wpf.TaskbarNotification.BalloonIcon.Info);
-                    }
+                        else
+                        {
+                            message = "Captured: Files";
+                        }
+                        break;
+                    default:
+                        message = "Captured: Clipboard content";
+                        break;
                 }
+
+                // Update the event status text
+                EventStatusText = message;
             }
             catch (Exception ex)
             {
                 // Log the error
                 Console.WriteLine($"Error showing notification: {ex.Message}");
                 Logger.Instance.Error("Error showing notification", ex);
+
+                // Update status bar with error
+                EventStatusText = "Error capturing clipboard content";
             }
         }
 
@@ -422,6 +468,7 @@ namespace ClipSage.App
                 if (entry.DataType == ClipSage.Core.Storage.ClipboardDataType.Text)
                 {
                     Clipboard.SetText(entry.PlainText ?? string.Empty);
+                    EventStatusText = $"Copied to clipboard: Text \"{GetTruncatedText(entry.PlainText, 40)}\"";
                 }
                 else if (entry.DataType == ClipSage.Core.Storage.ClipboardDataType.Image && entry.ImageBytes != null)
                 {
@@ -432,6 +479,7 @@ namespace ClipSage.App
                     bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
                     bitmap.EndInit();
                     Clipboard.SetImage(bitmap);
+                    EventStatusText = "Copied to clipboard: Image";
                 }
                 else if (entry.DataType == ClipSage.Core.Storage.ClipboardDataType.FilePaths && entry.FilePaths != null && entry.FilePaths.Length > 0)
                 {
@@ -471,22 +519,33 @@ namespace ClipSage.App
                     if (fileCollection.Count > 0)
                     {
                         Clipboard.SetFileDropList(fileCollection);
+
+                        if (fileCollection.Count == 1)
+                        {
+                            string fileName = System.IO.Path.GetFileName(fileCollection[0]);
+                            EventStatusText = $"Copied to clipboard: File \"{fileName}\"";
+                        }
+                        else
+                        {
+                            EventStatusText = $"Copied to clipboard: {fileCollection.Count} files";
+                        }
+
+                        if (!allFilesExist)
+                        {
+                            EventStatusText += " (some files used cached copies)";
+                        }
                     }
                     else
                     {
+                        EventStatusText = "Error: No files found to copy";
                         MessageBox.Show("None of the original files exist and no cached copies were found.",
                             "Files Not Found", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    }
-
-                    if (!allFilesExist && fileCollection.Count > 0)
-                    {
-                        MessageBox.Show("Some of the original files could not be found. Available files have been copied to the clipboard.",
-                            "Some Files Not Found", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 }
             }
             catch (Exception ex)
             {
+                EventStatusText = $"Error copying to clipboard: {ex.Message}";
                 MessageBox.Show($"Error copying to clipboard: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Logger.Instance.Error("Error copying to clipboard", ex);
             }
@@ -501,9 +560,36 @@ namespace ClipSage.App
             {
                 await _historyStore.DeleteAsync(entry.Id);
                 ClipboardEntries.Remove(entry);
+
+                // Update status bar
+                switch (entry.DataType)
+                {
+                    case ClipSage.Core.Storage.ClipboardDataType.Text:
+                        EventStatusText = $"Deleted: Text \"{GetTruncatedText(entry.PlainText, 40)}\"";
+                        break;
+                    case ClipSage.Core.Storage.ClipboardDataType.Image:
+                        EventStatusText = "Deleted: Image";
+                        break;
+                    case ClipSage.Core.Storage.ClipboardDataType.FilePaths:
+                        if (entry.FilePaths != null && entry.FilePaths.Length > 0)
+                        {
+                            EventStatusText = entry.FilePaths.Length == 1
+                                ? $"Deleted: File \"{Path.GetFileName(entry.FilePaths[0])}\""
+                                : $"Deleted: {entry.FilePaths.Length} files";
+                        }
+                        else
+                        {
+                            EventStatusText = "Deleted: Files";
+                        }
+                        break;
+                    default:
+                        EventStatusText = "Deleted: Clipboard entry";
+                        break;
+                }
             }
             catch (Exception ex)
             {
+                EventStatusText = $"Error deleting entry: {ex.Message}";
                 MessageBox.Show($"Error deleting entry: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Logger.Instance.Error("Error deleting entry", ex);
             }
@@ -516,9 +602,37 @@ namespace ClipSage.App
                 await _historyStore.PinAsync(entry.Id, isPinned);
                 // Refresh the list
                 LoadRecentEntriesAsync();
+
+                // Update status bar
+                string action = isPinned ? "Pinned" : "Unpinned";
+                switch (entry.DataType)
+                {
+                    case ClipSage.Core.Storage.ClipboardDataType.Text:
+                        EventStatusText = $"{action}: Text \"{GetTruncatedText(entry.PlainText, 40)}\"";
+                        break;
+                    case ClipSage.Core.Storage.ClipboardDataType.Image:
+                        EventStatusText = $"{action}: Image";
+                        break;
+                    case ClipSage.Core.Storage.ClipboardDataType.FilePaths:
+                        if (entry.FilePaths != null && entry.FilePaths.Length > 0)
+                        {
+                            EventStatusText = entry.FilePaths.Length == 1
+                                ? $"{action}: File \"{Path.GetFileName(entry.FilePaths[0])}\""
+                                : $"{action}: {entry.FilePaths.Length} files";
+                        }
+                        else
+                        {
+                            EventStatusText = $"{action}: Files";
+                        }
+                        break;
+                    default:
+                        EventStatusText = $"{action}: Clipboard entry";
+                        break;
+                }
             }
             catch (Exception ex)
             {
+                EventStatusText = $"Error {(isPinned ? "pinning" : "unpinning")} entry: {ex.Message}";
                 MessageBox.Show($"Error pinning entry: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Logger.Instance.Error("Error pinning entry", ex);
             }

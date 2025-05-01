@@ -60,6 +60,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- Menu -->
@@ -197,6 +198,44 @@
             </DockPanel>
         </Grid>
 
+        <!-- Status Bar -->
+        <StatusBar Grid.Row="3" Height="25">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
 
+            <!-- Monitoring Status Text -->
+            <StatusBarItem Grid.Column="0">
+                <TextBlock Text="{Binding MonitoringStatusText}" Margin="0,0,10,0" />
+            </StatusBarItem>
+
+            <!-- Event Status Text -->
+            <StatusBarItem Grid.Column="1">
+                <TextBlock Text="{Binding EventStatusText}" Margin="0,0,10,0" FontWeight="SemiBold" />
+            </StatusBarItem>
+
+            <!-- Update Status Text -->
+            <StatusBarItem Grid.Column="2">
+                <TextBlock Text="{Binding UpdateStatusText}" />
+            </StatusBarItem>
+
+            <!-- Monitoring Toggle Button -->
+            <StatusBarItem Grid.Column="3">
+                <ToggleButton x:Name="MonitoringToggle"
+                              IsChecked="{Binding IsMonitoring, Mode=OneWay}"
+                              Click="MonitoringToggle_Click"
+                              Content="{Binding IsMonitoring, Converter={StaticResource BooleanToMonitoringTextConverter}}"
+                              Width="100" />
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </metro:MetroWindow>

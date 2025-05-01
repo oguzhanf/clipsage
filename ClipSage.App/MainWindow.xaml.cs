@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
@@ -18,7 +19,8 @@ namespace ClipSage.App
     public partial class MainWindow : MetroWindow
     {
         private readonly MainViewModel _viewModel;
-        private bool _closeToTray = true;
+        private bool _closeToTray;
+        private bool _forceClose;
         private Hardcodet.Wpf.TaskbarNotification.TaskbarIcon? _trayIcon;
 
         public MainWindow()
@@ -26,6 +28,9 @@ namespace ClipSage.App
             InitializeComponent();
             _viewModel = new MainViewModel();
             DataContext = _viewModel;
+
+            // Initialize _closeToTray from settings
+            _closeToTray = Properties.Settings.Default.MinimizeToTray;
 
             // Set up the preview pane
             _viewModel.PropertyChanged += (s, e) =>
@@ -50,9 +55,8 @@ namespace ClipSage.App
             // Check for updates on startup if enabled
             if (Properties.Settings.Default.CheckForUpdates)
             {
-                // Use Task.Run to avoid blocking the UI thread
-                // We don't need to await this as it's a background operation
-                _ = Task.Run(async () => await CheckForUpdatesAsync());
+                // Check for updates silently in the background
+                _ = CheckForUpdatesSilentlyAsync();
             }
         }
 
@@ -77,8 +81,8 @@ namespace ClipSage.App
                 Console.WriteLine($"Failed to load tray icon: {ex.Message}");
             }
 
-            // Show balloon tip on startup
-            _trayIcon.ShowBalloonTip("ClipSage", "ClipSage is running in the background", BalloonIcon.Info);
+            // Update status bar on startup
+            _viewModel.EventStatusText = "ClipSage is running in the background";
         }
 
         private void RegisterGlobalHotkey()
@@ -176,6 +180,19 @@ namespace ClipSage.App
             }
         }
 
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            // If minimize to tray is enabled and we're not forcing a close, hide the window instead of closing it
+            if (_closeToTray && !_forceClose)
+            {
+                e.Cancel = true;
+                Hide();
+                return;
+            }
+
+            base.OnClosing(e);
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
@@ -226,15 +243,20 @@ namespace ClipSage.App
             var settingsWindow = new SettingsWindow();
             settingsWindow.Owner = this;
 
-            settingsWindow.ShowDialog();
+            if (settingsWindow.ShowDialog() == true)
+            {
+                // Update _closeToTray from settings after dialog is closed
+                _closeToTray = Properties.Settings.Default.MinimizeToTray;
+            }
         }
 
 
 
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
-            // Exit the application
-            Application.Current.Shutdown();
+            // Set flag to force close and exit the application
+            _forceClose = true;
+            Close();
         }
 
         private void TrayIcon_TrayLeftMouseDown(object sender, RoutedEventArgs e)
@@ -265,15 +287,25 @@ namespace ClipSage.App
                 MessageBoxImage.Information);
         }
 
-        private void CheckForUpdates_Click(object sender, RoutedEventArgs e)
+        private void MonitoringToggle_Click(object sender, RoutedEventArgs e)
         {
-            // Open the update check dialog
-            var updateCheckDialog = new UpdateCheckDialog();
-            updateCheckDialog.Owner = this;
-            updateCheckDialog.ShowDialog();
+            // Toggle clipboard monitoring
+            _viewModel.ToggleMonitoring();
+
+            // Update the toggle button state to match the actual monitoring state
+            if (MonitoringToggle.IsChecked != _viewModel.IsMonitoring)
+            {
+                MonitoringToggle.IsChecked = _viewModel.IsMonitoring;
+            }
         }
 
-        private async Task CheckForUpdatesAsync()
+        private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
+        {
+            // Check for updates and show results
+            await CheckForUpdatesAsync();
+        }
+
+        private async Task CheckForUpdatesSilentlyAsync()
         {
             try
             {
@@ -282,13 +314,24 @@ namespace ClipSage.App
                 if (lastCheck > new DateTime(1900, 1, 1) &&
                     (DateTime.Now - lastCheck).TotalHours < 24)
                 {
+                    _viewModel.UpdateStatusText = "Update check: Last check was within 24 hours";
                     return;
                 }
+
+                // Update status to show we're checking
+                _viewModel.UpdateStatusText = "Update check: Starting...";
 
                 // Check for updates
                 var updateChecker = UpdateChecker.Instance;
                 var updateInfo = await updateChecker.CheckForUpdateAsync(
-                    progress => Console.WriteLine($"Update check: {progress}"));
+                    progress =>
+                    {
+                        // Update the status bar with progress
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            _viewModel.UpdateStatusText = $"Update check: {progress}";
+                        });
+                    });
 
                 // Update the last check time
                 Properties.Settings.Default.LastUpdateCheck = DateTime.Now;
@@ -297,6 +340,9 @@ namespace ClipSage.App
                 // If an update is available, show a notification
                 if (updateInfo != null && updateInfo.IsUpdateAvailable)
                 {
+                    // Update status bar
+                    _viewModel.UpdateStatusText = $"Update available: v{updateInfo.VersionString}";
+
                     // Show a balloon tip
                     if (_trayIcon != null)
                     {
@@ -324,11 +370,79 @@ namespace ClipSage.App
                         await DownloadAndInstallUpdateAsync(updateInfo);
                     }
                 }
+                else
+                {
+                    // No update available
+                    _viewModel.UpdateStatusText = "Update check: You have the latest version";
+                }
             }
             catch (Exception ex)
             {
-                // Log the error but don't show it to the user
+                // Log the error and update status bar
                 Console.WriteLine($"Error checking for updates: {ex.Message}");
+                _viewModel.UpdateStatusText = $"Update check failed: {ex.Message}";
+            }
+        }
+
+        private async Task CheckForUpdatesAsync()
+        {
+            try
+            {
+                // Update status to show we're checking
+                _viewModel.UpdateStatusText = "Update check: Starting...";
+
+                // Check for updates
+                var updateChecker = UpdateChecker.Instance;
+                var updateInfo = await updateChecker.CheckForUpdateAsync(
+                    progress =>
+                    {
+                        // Update the status bar with progress
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            _viewModel.UpdateStatusText = $"Update check: {progress}";
+                        });
+                    });
+
+                // Update the last check time
+                Properties.Settings.Default.LastUpdateCheck = DateTime.Now;
+                Properties.Settings.Default.Save();
+
+                // If an update is available, show a notification
+                if (updateInfo != null && updateInfo.IsUpdateAvailable)
+                {
+                    // Update status bar
+                    _viewModel.UpdateStatusText = $"Update available: v{updateInfo.VersionString}";
+
+                    // Show the update dialog
+                    var updateCheckDialog = new UpdateCheckDialog();
+                    updateCheckDialog.Owner = this;
+                    updateCheckDialog.ShowDialog();
+                }
+                else
+                {
+                    // No update available
+                    _viewModel.UpdateStatusText = "Update check: You have the latest version";
+
+                    // Show a message box
+                    MessageBox.Show(
+                        "You have the latest version of ClipSage.",
+                        "No Updates Available",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the error and update status bar
+                Console.WriteLine($"Error checking for updates: {ex.Message}");
+                _viewModel.UpdateStatusText = $"Update check failed: {ex.Message}";
+
+                // Show error to the user
+                MessageBox.Show(
+                    $"Error checking for updates: {ex.Message}",
+                    "Update Check Failed",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
 
@@ -336,43 +450,86 @@ namespace ClipSage.App
         {
             try
             {
-                // Create a progress dialog
-                var progressDialog = new ProgressDialog
+                // Create a progress dialog if this is a manual update
+                ProgressDialog? progressDialog = null;
+                if (IsVisible)
                 {
-                    Owner = this,
-                    Title = "Downloading Update",
-                    Message = $"Downloading ClipSage v{updateInfo.VersionString}...",
-                    IsIndeterminate = false
-                };
+                    progressDialog = new ProgressDialog
+                    {
+                        Owner = this,
+                        Title = "Downloading Update",
+                        Message = $"Downloading ClipSage v{updateInfo.VersionString}...",
+                        IsIndeterminate = false
+                    };
+                }
 
                 // Create a progress reporter
                 var progress = new Progress<double>(value =>
                 {
-                    progressDialog.Progress = value;
-                    progressDialog.Message = $"Downloading ClipSage v{updateInfo.VersionString}... {value:P0}";
+                    // Update the progress dialog if it exists
+                    if (progressDialog != null)
+                    {
+                        progressDialog.Progress = value;
+                        progressDialog.Message = $"Downloading ClipSage v{updateInfo.VersionString}... {value:P0}";
+                    }
+
+                    // Always update the status bar
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        _viewModel.UpdateStatusText = $"Downloading update: {value:P0}";
+                    });
                 });
 
                 // Start the download in the background
                 var updateChecker = UpdateChecker.Instance;
-                var downloadTask = updateChecker.DownloadUpdateAsync(updateInfo, progress);
 
-                // Show the progress dialog
-                progressDialog.Show();
+                // Show the progress dialog if it exists
+                if (progressDialog != null)
+                {
+                    progressDialog.Show();
+                }
+
+                // Start the download
+                var downloadTask = updateChecker.DownloadUpdateAsync(updateInfo, progress);
 
                 // Wait for the download to complete
                 var installerPath = await downloadTask;
 
-                // Close the progress dialog
-                progressDialog.Close();
+                // Close the progress dialog if it exists
+                if (progressDialog != null)
+                {
+                    progressDialog.Close();
+                }
 
                 // Check if the download was successful
                 if (string.IsNullOrEmpty(installerPath))
                 {
-                    MessageBox.Show(
-                        "Failed to download the update. Please try again later.",
-                        "Download Failed",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
+                    _viewModel.UpdateStatusText = "Download failed: Could not download update";
+
+                    if (IsVisible)
+                    {
+                        MessageBox.Show(
+                            "Failed to download the update. Please try again later.",
+                            "Download Failed",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                    }
+                    return;
+                }
+
+                // Update status
+                _viewModel.UpdateStatusText = "Download complete. Ready to install.";
+
+                // If this is a silent update and auto-install is enabled, install without prompting
+                if (!IsVisible && Properties.Settings.Default.AutoInstallUpdates)
+                {
+                    // Install the update
+                    if (updateChecker.InstallUpdate(installerPath))
+                    {
+                        // Set flag to force close and exit the application
+                        _forceClose = true;
+                        Close();
+                    }
                     return;
                 }
 
@@ -388,11 +545,14 @@ namespace ClipSage.App
                     // Install the update
                     if (updateChecker.InstallUpdate(installerPath))
                     {
-                        // Close the application
-                        Application.Current.Shutdown();
+                        // Set flag to force close and exit the application
+                        _forceClose = true;
+                        Close();
                     }
                     else
                     {
+                        _viewModel.UpdateStatusText = "Installation failed";
+
                         MessageBox.Show(
                             "Failed to start the installer. You can find it at:\n" + installerPath,
                             "Installation Failed",
@@ -403,11 +563,16 @@ namespace ClipSage.App
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Error downloading update: {ex.Message}",
-                    "Download Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                _viewModel.UpdateStatusText = $"Download error: {ex.Message}";
+
+                if (IsVisible)
+                {
+                    MessageBox.Show(
+                        $"Error downloading update: {ex.Message}",
+                        "Download Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
             }
         }
     }

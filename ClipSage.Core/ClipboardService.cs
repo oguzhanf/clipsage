@@ -13,14 +13,56 @@ namespace ClipSage.Core
 
         public event EventHandler<ClipboardEntry>? ClipboardChanged;
 
+        private ClipboardNotificationForm? _notificationForm;
+        private Thread? _clipboardThread;
+        private bool _isMonitoring = false;
+
+        public bool IsMonitoring => _isMonitoring;
+
         private ClipboardService()
         {
-            var thread = new Thread(() => {
-                Application.Run(new ClipboardNotificationForm(this));
+            // Start monitoring by default
+            StartMonitoring();
+        }
+
+        public void StartMonitoring()
+        {
+            if (_isMonitoring)
+                return;
+
+            _clipboardThread = new Thread(() => {
+                _notificationForm = new ClipboardNotificationForm(this);
+                Application.Run(_notificationForm);
             });
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.IsBackground = true;
-            thread.Start();
+            _clipboardThread.SetApartmentState(ApartmentState.STA);
+            _clipboardThread.IsBackground = true;
+            _clipboardThread.Start();
+
+            _isMonitoring = true;
+        }
+
+        public void StopMonitoring()
+        {
+            if (!_isMonitoring)
+                return;
+
+            if (_notificationForm != null)
+            {
+                _notificationForm.BeginInvoke(new Action(() => {
+                    _notificationForm.Close();
+                }));
+                _notificationForm = null;
+            }
+
+            _isMonitoring = false;
+        }
+
+        public void ToggleMonitoring()
+        {
+            if (_isMonitoring)
+                StopMonitoring();
+            else
+                StartMonitoring();
         }
 
         public void OnClipboardChanged(ClipboardEntry entry)

@@ -41,21 +41,9 @@ namespace ClipSage.App
                 {
                     // Initialize the logger
                     InitializeLogger();
-                }
-            }
 
-            // Check if we should start minimized
-            bool startMinimized = ClipSage.App.Properties.Settings.Default.StartMinimized;
-            bool minimizeToTray = ClipSage.App.Properties.Settings.Default.MinimizeToTray;
-
-            if (startMinimized)
-            {
-                MainWindow.WindowState = WindowState.Minimized;
-
-                if (minimizeToTray)
-                {
-                    // Hide the main window
-                    MainWindow.Hide();
+                    // Create and show the main window
+                    ShowMainWindow();
                 }
             }
         }
@@ -72,6 +60,9 @@ namespace ClipSage.App
 
                 // Initialize the logger now that we have a caching folder
                 InitializeLogger();
+
+                // Create and show the main window
+                ShowMainWindow();
             }
             else
             {
@@ -83,6 +74,43 @@ namespace ClipSage.App
                     MessageBoxImage.Information);
 
                 Shutdown();
+            }
+        }
+
+        /// <summary>
+        /// Creates and shows the main window with appropriate startup settings.
+        /// </summary>
+        private void ShowMainWindow()
+        {
+            // Create the main window if it doesn't exist
+            if (MainWindow == null)
+            {
+                MainWindow = new MainWindow();
+            }
+
+            // Check if we should start minimized
+            bool startMinimized = ClipSage.App.Properties.Settings.Default.StartMinimized;
+            bool minimizeToTray = ClipSage.App.Properties.Settings.Default.MinimizeToTray;
+
+            if (startMinimized)
+            {
+                MainWindow.WindowState = WindowState.Minimized;
+
+                if (minimizeToTray)
+                {
+                    // Hide the main window
+                    MainWindow.Hide();
+                }
+                else
+                {
+                    // Show the window minimized
+                    MainWindow.Show();
+                }
+            }
+            else
+            {
+                // Show the window normally
+                MainWindow.Show();
             }
         }
 
