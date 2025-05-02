@@ -8,6 +8,7 @@ using System.Linq;
 using System.IO;
 using ClipSage.App.Properties;
 using ClipSage.Core.Logging;
+using ClipSage.Core.Storage;
 
 namespace ClipSage.App
 {
@@ -42,6 +43,18 @@ namespace ClipSage.App
             set
             {
                 _searchText = value;
+                OnPropertyChanged();
+                FilterEntries();
+            }
+        }
+
+        private ClipboardDataType? _currentFilterType = null;
+        public ClipboardDataType? CurrentFilterType
+        {
+            get => _currentFilterType;
+            set
+            {
+                _currentFilterType = value;
                 OnPropertyChanged();
                 FilterEntries();
             }
@@ -157,23 +170,25 @@ namespace ClipSage.App
 
         private void FilterEntries()
         {
-            if (string.IsNullOrWhiteSpace(SearchText))
+            // Start with all entries
+            var filteredEntries = _allEntries.AsEnumerable();
+
+            // Apply data type filter if one is selected
+            if (CurrentFilterType.HasValue)
             {
-                // Show all entries
-                ClipboardEntries.Clear();
-                foreach (var entry in _allEntries)
-                {
-                    ClipboardEntries.Add(entry);
-                }
-                return;
+                filteredEntries = filteredEntries.Where(e => e.DataType == CurrentFilterType.Value);
             }
 
-            // Filter entries based on search text
-            var filteredEntries = _allEntries.Where(e =>
-                e.DataType == ClipSage.Core.Storage.ClipboardDataType.Text &&
-                e.PlainText != null &&
-                e.PlainText.Contains(SearchText, StringComparison.OrdinalIgnoreCase)).ToList();
+            // Apply text search filter if text is provided
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                filteredEntries = filteredEntries.Where(e =>
+                    e.DataType == ClipboardDataType.Text &&
+                    e.PlainText != null &&
+                    e.PlainText.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+            }
 
+            // Update the UI collection
             ClipboardEntries.Clear();
             foreach (var entry in filteredEntries)
             {
@@ -231,11 +246,14 @@ namespace ClipSage.App
                     var viewModel = new ClipboardEntryViewModel(storageEntry);
                     _allEntries.Insert(0, viewModel);
 
-                    // Only add to visible collection if it matches the current filter
-                    if (string.IsNullOrWhiteSpace(SearchText) ||
-                        (storageEntry.DataType == ClipSage.Core.Storage.ClipboardDataType.Text &&
+                    // Only add to visible collection if it matches the current filters
+                    bool matchesTypeFilter = !CurrentFilterType.HasValue || storageEntry.DataType == CurrentFilterType.Value;
+                    bool matchesTextFilter = string.IsNullOrWhiteSpace(SearchText) ||
+                        (storageEntry.DataType == ClipboardDataType.Text &&
                          storageEntry.PlainText != null &&
-                         storageEntry.PlainText.Contains(SearchText, StringComparison.OrdinalIgnoreCase)))
+                         storageEntry.PlainText.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+
+                    if (matchesTypeFilter && matchesTextFilter)
                     {
                         ClipboardEntries.Insert(0, viewModel);
                     }

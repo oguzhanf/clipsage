@@ -3,10 +3,10 @@
   <Fragment>
     <ComponentGroup Id="PublishedComponents">
       <Component Id="MainExecutable" Guid="*" Directory="INSTALLFOLDER">
-        <File Id="Clipper_App_exe" Source="PublishedFiles\Clipper.App.exe" KeyPath="yes" />
+        <File Id="ClipSage_App_exe" Source="PublishedFiles\ClipSage.App.exe" KeyPath="yes" />
       </Component>
       <Component Id="CoreLibrary" Guid="*" Directory="INSTALLFOLDER">
-        <File Id="Clipper_Core_dll" Source="PublishedFiles\Clipper.Core.dll" KeyPath="yes" />
+        <File Id="ClipSage_Core_dll" Source="PublishedFiles\ClipSage.Core.dll" KeyPath="yes" />
       </Component>
     </ComponentGroup>
   </Fragment>

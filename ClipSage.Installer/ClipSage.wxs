@@ -2,9 +2,9 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
      xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
-  
+
   <Package Name="ClipSage"
-           Version="1.0.13"
+           Version="$(var.Version)"
            Manufacturer="ClipSage"
            UpgradeCode="6fe30b47-2626-43ff-9384-d324f425a2a2"
            InstallerVersion="200">
@@ -22,9 +22,9 @@
     <Property Id="STARTUPCHECKBOX" Value="1" />
     <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="Start ClipSage automatically when you log in to Windows" />
 
-    <CustomAction Id="LaunchApplication" 
-                  BinaryKey="WixCA" 
-                  DllEntry="WixShellExec" 
+    <CustomAction Id="LaunchApplication"
+                  BinaryKey="WixCA"
+                  DllEntry="WixShellExec"
                   Impersonate="yes" />
 
     <InstallExecuteSequence>
@@ -50,15 +50,15 @@
                         Advertise="yes" />
             </File>
           </Component>
-          
+
           <!-- Registry entry for auto-start -->
           <Component Id="RegistryEntries" Guid="*">
             <Condition>STARTUPCHECKBOX = 1</Condition>
-            <RegistryValue Root="HKCU" 
-                           Key="Software\Microsoft\Windows\CurrentVersion\Run" 
-                           Name="ClipSage" 
-                           Value="&quot;[INSTALLFOLDER]ClipSage.App.exe&quot;" 
-                           Type="string" 
+            <RegistryValue Root="HKCU"
+                           Key="Software\Microsoft\Windows\CurrentVersion\Run"
+                           Name="ClipSage"
+                           Value="&quot;[INSTALLFOLDER]ClipSage.App.exe&quot;"
+                           Type="string"
                            KeyPath="yes" />
           </Component>
         </Directory>

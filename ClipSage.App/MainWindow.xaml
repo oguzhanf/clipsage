@@ -86,9 +86,9 @@
             </Grid.ColumnDefinitions>
 
             <!-- Left Column: ListView and Search Box -->
-            <DockPanel Grid.Column="0" Margin="0,0,10,0">
+            <DockPanel Grid.Column="0" Margin="0,0,10,5">
                 <TextBlock DockPanel.Dock="Top" Text="Clipboard History" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,5" />
-                <Border DockPanel.Dock="Top" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4" Margin="0,0,0,10">
+                <Border DockPanel.Dock="Top" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4" Margin="0,0,0,5">
                     <Grid>
                         <TextBox x:Name="SearchBox" Padding="5" BorderThickness="0" Background="Transparent"
                                  Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
@@ -97,11 +97,34 @@
                     </Grid>
                 </Border>
 
+                <!-- Filter Toolbar -->
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,5,0" />
+                    <Button x:Name="AllFilterButton" Width="32" Height="32" Margin="2" Click="AllFilterButton_Click"
+                            ToolTip="Show all items" Background="#E0E0E0">
+                        <TextBlock Text="All" FontWeight="Bold" />
+                    </Button>
+                    <Button x:Name="TextFilterButton" Width="32" Height="32" Margin="2" Click="TextFilterButton_Click"
+                            ToolTip="Show only text items" Background="#2196F3">
+                        <TextBlock Text="📄" Foreground="White" />
+                    </Button>
+                    <Button x:Name="ImageFilterButton" Width="32" Height="32" Margin="2" Click="ImageFilterButton_Click"
+                            ToolTip="Show only image items" Background="#4CAF50">
+                        <TextBlock Text="🖼️" Foreground="White" />
+                    </Button>
+                    <Button x:Name="FileFilterButton" Width="32" Height="32" Margin="2" Click="FileFilterButton_Click"
+                            ToolTip="Show only file items" Background="#9E9E9E">
+                        <TextBlock Text="📁" Foreground="White" />
+                    </Button>
+                </StackPanel>
+
                 <ListView x:Name="ClipboardList" DockPanel.Dock="Bottom"
                           ItemsSource="{Binding ClipboardEntries}"
                           SelectedItem="{Binding SelectedEntry}"
                           BorderThickness="1" BorderBrush="#E0E0E0"
-                          Background="White">
+                          Background="White"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                          VirtualizingPanel.ScrollUnit="Pixel">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <Grid Margin="5">
@@ -151,7 +174,7 @@
             </DockPanel>
 
             <!-- Right Column: Preview Pane and Action Buttons -->
-            <DockPanel Grid.Column="1">
+            <DockPanel Grid.Column="1" Margin="0,0,0,5">
                 <TextBlock DockPanel.Dock="Top" Text="Preview" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,5" />
 
                 <!-- Action Buttons -->
@@ -199,7 +222,7 @@
         </Grid>
 
         <!-- Status Bar -->
-        <StatusBar Grid.Row="3" Height="25">
+        <StatusBar Grid.Row="3" Height="30">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>
@@ -207,6 +230,7 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                     </Grid>
@@ -228,13 +252,19 @@
                 <TextBlock Text="{Binding UpdateStatusText}" />
             </StatusBarItem>
 
-            <!-- Monitoring Toggle Button -->
+            <!-- Version Text -->
             <StatusBarItem Grid.Column="3">
+                <TextBlock x:Name="VersionText" Margin="0,0,10,0" Foreground="Gray" />
+            </StatusBarItem>
+
+            <!-- Monitoring Toggle Button -->
+            <StatusBarItem Grid.Column="4">
                 <ToggleButton x:Name="MonitoringToggle"
                               IsChecked="{Binding IsMonitoring, Mode=OneWay}"
                               Click="MonitoringToggle_Click"
                               Content="{Binding IsMonitoring, Converter={StaticResource BooleanToMonitoringTextConverter}}"
-                              Width="100" />
+                              Width="120"
+                              Padding="10,3" />
             </StatusBarItem>
         </StatusBar>
     </Grid>

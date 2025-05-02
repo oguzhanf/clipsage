@@ -44,9 +44,9 @@
     <!-- Create output directory if it doesn't exist -->
     <MakeDir Directories="$(OutputPath)" Condition="!Exists('$(OutputPath)')" />
 
-    <!-- Set version directly -->
+    <!-- Get version from Directory.Build.props -->
     <PropertyGroup>
-      <VersionValue>1.0.11</VersionValue>
+      <VersionValue>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\..\Directory.Build.props').Replace('\r\n', '').Replace('\n', '').Replace(' ', '').Replace('\t', '').Replace('&lt;PropertyGroup&gt;', '~').Replace('&lt;/PropertyGroup&gt;', '~').Split('~')[1].Replace('&lt;Version&gt;', '~').Replace('&lt;/Version&gt;', '~').Split('~')[1])</VersionValue>
     </PropertyGroup>
 
     <!-- Create Components.wxs file manually since WiX v6 doesn't support heat directly -->
