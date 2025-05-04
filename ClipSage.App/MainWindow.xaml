@@ -7,6 +7,7 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:tb="http://www.hardcodet.net/taskbar"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:converters="clr-namespace:ClipSage.App.Converters"
         mc:Ignorable="d"
         Title="ClipSage - Advanced Clipboard Manager"
         Height="600" Width="1000"
@@ -36,6 +37,66 @@
             <Separator/>
             <MenuItem Header="Exit" Click="Exit_Click"/>
         </ContextMenu>
+
+        <!-- Import icons from application resources -->
+        <DrawingImage x:Key="TextDocumentIcon" x:Shared="False">
+            <DrawingImage.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="#2196F3">
+                        <GeometryDrawing.Geometry>
+                            <PathGeometry Figures="M14,10H50V54H14V10M16,12V52H48V12H16M38,16H24V20H38V16M38,22H24V26H38V22M44,32H24V36H44V32M44,38H24V42H44V38M44,44H24V48H44V44Z" />
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+
+        <DrawingImage x:Key="ImageIcon" x:Shared="False">
+            <DrawingImage.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="#4CAF50">
+                        <GeometryDrawing.Geometry>
+                            <PathGeometry Figures="M8,12H56V52H8V12M12,16V48H52V16H12M20,20A4,4 0 0,1 24,24A4,4 0 0,1 20,28A4,4 0 0,1 16,24A4,4 0 0,1 20,20M44,44H20L30,34L36,40L40,36L44,40V44Z" />
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+
+        <DrawingImage x:Key="FolderIcon" x:Shared="False">
+            <DrawingImage.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="#FFA000">
+                        <GeometryDrawing.Geometry>
+                            <PathGeometry Figures="M10,12H22L26,16H54V48H10V12M12,14V46H52V18H25.17L21.17,14H12Z" />
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+
+        <DrawingImage x:Key="UnknownIcon" x:Shared="False">
+            <DrawingImage.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="#9E9E9E">
+                        <GeometryDrawing.Geometry>
+                            <PathGeometry Figures="M32,6C17.641,6,6,17.641,6,32c0,14.359,11.641,26,26,26s26-11.641,26-26C58,17.641,46.359,6,32,6z M32,54
+                                              c-12.15,0-22-9.85-22-22c0-12.15,9.85-22,22-22s22,9.85,22,22C54,44.15,44.15,54,32,54z M32,28c-2.209,0-4,1.791-4,4v12
+                                              c0,2.209,1.791,4,4,4s4-1.791,4-4V32C36,29.791,34.209,28,32,28z M32,16c-2.209,0-4,1.791-4,4s1.791,4,4,4s4-1.791,4-4
+                                              S34.209,16,32,16z" />
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+
+        <!-- Custom converters -->
+        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+        <converters:NullToBooleanConverter x:Key="NullToBooleanConverter" />
+        <converters:DataTypeToColorConverter x:Key="DataTypeToColorConverter" />
+        <converters:DataTypeToIconConverter x:Key="DataTypeToIconConverter" />
+        <converters:DataTypeToLabelConverter x:Key="DataTypeToLabelConverter" />
+        <converters:BooleanToMonitoringTextConverter x:Key="BooleanToMonitoringTextConverter" />
     </Window.Resources>
 
     <Grid Margin="10">
