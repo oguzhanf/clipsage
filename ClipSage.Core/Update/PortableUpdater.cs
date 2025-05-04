@@ -144,13 +144,13 @@ namespace ClipSage.Core.Update
                     TagName = tagName // Store the original tag name for download
                 };
 
-                // Find the ZIP asset
+                // Find the executable asset (.exe)
                 if (latestRelease.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
                 {
                     foreach (var asset in assets.EnumerateArray())
                     {
                         var name = asset.GetProperty("name").GetString();
-                        if (name != null && name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                        if (name != null && name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                         {
                             updateInfo.InstallerFileName = name;
                             updateInfo.InstallerSizeBytes = asset.GetProperty("size").GetInt64();
