@@ -193,14 +193,20 @@ namespace ClipSage.App
 
                 // Start the download
                 AddLogMessage("Downloading update...");
-                _downloadedUpdatePath = await _updater.DownloadUpdateAsync(_updateInfo, progress);
+                var downloadResult = await _updater.DownloadUpdateAsync(_updateInfo, progress);
 
                 // Check if the download was successful
-                if (string.IsNullOrEmpty(_downloadedUpdatePath))
+                if (!downloadResult.IsSuccess)
                 {
-                    AddLogMessage("Failed to download the update.", true);
+                    AddLogMessage($"Failed to download the update: {downloadResult.ErrorMessage}", true);
+
+                    if (!string.IsNullOrEmpty(downloadResult.DetailedError))
+                    {
+                        AddLogMessage($"Detailed error: {downloadResult.DetailedError}", true);
+                    }
+
                     MessageBox.Show(
-                        "Failed to download the update. Please try again later.",
+                        $"Failed to download the update.\n\nError: {downloadResult.ErrorMessage}\n\n{downloadResult.DetailedError}",
                         "Download Failed",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error);
@@ -210,6 +216,8 @@ namespace ClipSage.App
                     UpdateButton.Content = $"Update to v{_updateInfo.VersionString}";
                     return;
                 }
+
+                _downloadedUpdatePath = downloadResult.FilePath;
 
                 AddLogMessage($"Download completed: {_downloadedUpdatePath}");
 

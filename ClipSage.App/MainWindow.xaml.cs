@@ -558,7 +558,7 @@ namespace ClipSage.App
                 var downloadTask = updateChecker.DownloadUpdateAsync(updateInfo, progress);
 
                 // Wait for the download to complete
-                var installerPath = await downloadTask;
+                var downloadResult = await downloadTask;
 
                 // Close the progress dialog if it exists
                 if (progressDialog != null)
@@ -567,20 +567,22 @@ namespace ClipSage.App
                 }
 
                 // Check if the download was successful
-                if (string.IsNullOrEmpty(installerPath))
+                if (!downloadResult.IsSuccess)
                 {
-                    _viewModel.UpdateStatusText = "Download failed: Could not download update";
+                    _viewModel.UpdateStatusText = $"Download failed: {downloadResult.ErrorMessage}";
 
                     if (IsVisible)
                     {
                         MessageBox.Show(
-                            "Failed to download the update. Please try again later.",
+                            $"Failed to download the update.\n\nError: {downloadResult.ErrorMessage}\n\n{downloadResult.DetailedError}",
                             "Download Failed",
                             MessageBoxButton.OK,
                             MessageBoxImage.Error);
                     }
                     return;
                 }
+
+                var installerPath = downloadResult.FilePath;
 
                 // Update status
                 _viewModel.UpdateStatusText = "Download complete. Ready to install.";

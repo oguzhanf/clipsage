@@ -180,12 +180,43 @@ namespace ClipSage.Core.Update
         }
 
         /// <summary>
+        /// Result of the download operation
+        /// </summary>
+        public class DownloadResult
+        {
+            /// <summary>
+            /// Path to the downloaded file if successful
+            /// </summary>
+            public string? FilePath { get; set; }
+
+            /// <summary>
+            /// Error message if the download failed
+            /// </summary>
+            public string? ErrorMessage { get; set; }
+
+            /// <summary>
+            /// Detailed error information if available
+            /// </summary>
+            public string? DetailedError { get; set; }
+
+            /// <summary>
+            /// HTTP status code if applicable
+            /// </summary>
+            public int? StatusCode { get; set; }
+
+            /// <summary>
+            /// Whether the download was successful
+            /// </summary>
+            public bool IsSuccess => !string.IsNullOrEmpty(FilePath) && string.IsNullOrEmpty(ErrorMessage);
+        }
+
+        /// <summary>
         /// Downloads the update installer
         /// </summary>
         /// <param name="updateInfo">Update information</param>
         /// <param name="progressCallback">Callback for download progress</param>
-        /// <returns>Path to the downloaded installer</returns>
-        public async Task<string?> DownloadUpdateAsync(UpdateInfo updateInfo, IProgress<double>? progressCallback = null)
+        /// <returns>Download result with path to the downloaded installer or error information</returns>
+        public async Task<DownloadResult> DownloadUpdateAsync(UpdateInfo updateInfo, IProgress<double>? progressCallback = null)
         {
             try
             {
@@ -200,35 +231,105 @@ namespace ClipSage.Core.Update
                 var downloadUrl = $"{_downloadBaseUrl}/{tagName}/{updateInfo.InstallerFileName}";
                 var tempPath = Path.Combine(Path.GetTempPath(), updateInfo.InstallerFileName);
 
-                using var response = await _httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
-                response.EnsureSuccessStatusCode();
+                // Log the download URL for debugging
+                Debug.WriteLine($"Download URL: {downloadUrl}");
 
-                var totalBytes = response.Content.Headers.ContentLength ?? -1L;
-                using var contentStream = await response.Content.ReadAsStreamAsync();
-                using var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
-
-                var buffer = new byte[8192];
-                var bytesRead = 0;
-                var totalBytesRead = 0L;
-
-                while ((bytesRead = await contentStream.ReadAsync(buffer)) > 0)
+                try
                 {
-                    await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead));
-                    totalBytesRead += bytesRead;
+                    using var response = await _httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
 
-                    if (totalBytes > 0 && progressCallback != null)
+                    // Check for HTTP errors
+                    if (!response.IsSuccessStatusCode)
                     {
-                        var progressPercentage = (double)totalBytesRead / totalBytes;
-                        progressCallback.Report(progressPercentage);
+                        return new DownloadResult
+                        {
+                            ErrorMessage = $"HTTP error: {(int)response.StatusCode} {response.ReasonPhrase}",
+                            DetailedError = $"Failed to download from {downloadUrl}. Server returned status code {(int)response.StatusCode} {response.ReasonPhrase}.",
+                            StatusCode = (int)response.StatusCode
+                        };
                     }
-                }
 
-                return tempPath;
+                    response.EnsureSuccessStatusCode();
+
+                    var totalBytes = response.Content.Headers.ContentLength ?? -1L;
+                    using var contentStream = await response.Content.ReadAsStreamAsync();
+
+                    // Check if the file already exists and try to delete it
+                    if (File.Exists(tempPath))
+                    {
+                        try
+                        {
+                            File.Delete(tempPath);
+                        }
+                        catch (IOException ioEx)
+                        {
+                            return new DownloadResult
+                            {
+                                ErrorMessage = "File access error",
+                                DetailedError = $"Could not access the temporary file: {tempPath}. The file may be in use by another process. Details: {ioEx.Message}"
+                            };
+                        }
+                    }
+
+                    try
+                    {
+                        using var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+
+                        var buffer = new byte[8192];
+                        var bytesRead = 0;
+                        var totalBytesRead = 0L;
+
+                        while ((bytesRead = await contentStream.ReadAsync(buffer)) > 0)
+                        {
+                            await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead));
+                            totalBytesRead += bytesRead;
+
+                            if (totalBytes > 0 && progressCallback != null)
+                            {
+                                var progressPercentage = (double)totalBytesRead / totalBytes;
+                                progressCallback.Report(progressPercentage);
+                            }
+                        }
+                    }
+                    catch (IOException ioEx)
+                    {
+                        return new DownloadResult
+                        {
+                            ErrorMessage = "File write error",
+                            DetailedError = $"Error writing to temporary file: {tempPath}. Details: {ioEx.Message}"
+                        };
+                    }
+
+                    // Verify the file exists and has content
+                    var fileInfo = new FileInfo(tempPath);
+                    if (!fileInfo.Exists || fileInfo.Length == 0)
+                    {
+                        return new DownloadResult
+                        {
+                            ErrorMessage = "Download verification failed",
+                            DetailedError = $"The downloaded file is missing or empty: {tempPath}"
+                        };
+                    }
+
+                    return new DownloadResult { FilePath = tempPath };
+                }
+                catch (HttpRequestException httpEx)
+                {
+                    return new DownloadResult
+                    {
+                        ErrorMessage = "Network error",
+                        DetailedError = $"Network error while downloading update: {httpEx.Message}. Status code: {httpEx.StatusCode}"
+                    };
+                }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error downloading update: {ex.Message}");
-                return null;
+                return new DownloadResult
+                {
+                    ErrorMessage = "Download failed",
+                    DetailedError = $"Unexpected error during download: {ex.Message}\n{ex.StackTrace}"
+                };
             }
         }
 

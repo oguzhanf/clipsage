@@ -152,21 +152,23 @@ namespace ClipSage.App
                 progressDialog.Show();
 
                 // Wait for the download to complete
-                var installerPath = await downloadTask;
+                var downloadResult = await downloadTask;
 
                 // Close the progress dialog
                 progressDialog.Close();
 
                 // Check if the download was successful
-                if (string.IsNullOrEmpty(installerPath))
+                if (!downloadResult.IsSuccess)
                 {
                     MessageBox.Show(
-                        "Failed to download the update. Please try again later.",
+                        $"Failed to download the update.\n\nError: {downloadResult.ErrorMessage}\n\n{downloadResult.DetailedError}",
                         "Download Failed",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error);
                     return;
                 }
+
+                var installerPath = downloadResult.FilePath;
 
                 // Ask the user if they want to install now
                 var result = MessageBox.Show(
