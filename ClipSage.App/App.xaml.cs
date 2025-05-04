@@ -259,35 +259,116 @@ namespace ClipSage.App
         /// </summary>
         private void ShowMainWindow()
         {
-            // Create the main window if it doesn't exist
-            if (MainWindow == null)
+            try
             {
-                MainWindow = new MainWindow();
-            }
+                // Log that we're showing the main window
+                Console.WriteLine("Showing main window...");
 
-            // Check if we should start minimized
-            bool startMinimized = ClipSage.App.Properties.Settings.Default.StartMinimized;
-            bool minimizeToTray = ClipSage.App.Properties.Settings.Default.MinimizeToTray;
-
-            if (startMinimized)
-            {
-                MainWindow.WindowState = WindowState.Minimized;
-
-                if (minimizeToTray)
+                // Create the main window if it doesn't exist
+                if (MainWindow == null)
                 {
-                    // Hide the main window
-                    MainWindow.Hide();
+                    Console.WriteLine("Creating new MainWindow instance");
+                    MainWindow = new MainWindow();
+                }
+
+                // Check if we should start minimized
+                bool startMinimized = ClipSage.App.Properties.Settings.Default.StartMinimized;
+                bool minimizeToTray = ClipSage.App.Properties.Settings.Default.MinimizeToTray;
+
+                // Get a reference to the MainWindow as the specific type
+                var mainWindow = MainWindow as MainWindow;
+
+                if (startMinimized)
+                {
+                    Console.WriteLine("Starting minimized (startMinimized=true)");
+
+                    // Set the window state to minimized
+                    MainWindow.WindowState = WindowState.Minimized;
+
+                    if (minimizeToTray)
+                    {
+                        // Only hide the window if the tray icon is properly initialized
+                        if (mainWindow != null && mainWindow.IsTrayIconInitialized)
+                        {
+                            Console.WriteLine("Hiding main window (minimizeToTray=true, tray icon initialized)");
+                            if (Logger.Instance != null)
+                            {
+                                Logger.Instance.Info("Hiding main window (minimizeToTray=true, tray icon initialized)");
+                            }
+
+                            // Hide the main window
+                            MainWindow.Hide();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Cannot hide to tray: tray icon is not initialized");
+                            if (Logger.Instance != null)
+                            {
+                                Logger.Instance.Warning("Cannot hide to tray: tray icon is not initialized");
+                            }
+
+                            // Show the window minimized instead
+                            MainWindow.Show();
+
+                            // Show a warning to the user
+                            MessageBox.Show(
+                                "The system tray icon could not be initialized. The application will be shown minimized instead of hidden to tray.",
+                                "Tray Icon Warning",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Showing window minimized (minimizeToTray=false)");
+                        // Show the window minimized
+                        MainWindow.Show();
+                    }
                 }
                 else
                 {
-                    // Show the window minimized
+                    Console.WriteLine("Showing window normally (startMinimized=false)");
+                    // Show the window normally
                     MainWindow.Show();
                 }
+
+                Console.WriteLine("MainWindow setup complete");
             }
-            else
+            catch (Exception ex)
             {
-                // Show the window normally
-                MainWindow.Show();
+                Console.WriteLine($"Error showing main window: {ex.Message}");
+                if (Logger.Instance != null)
+                {
+                    Logger.Instance.Error("Error showing main window", ex);
+                }
+
+                // Make sure the window is shown even if there's an error
+                try
+                {
+                    if (MainWindow != null)
+                    {
+                        MainWindow.Show();
+                    }
+                }
+                catch
+                {
+                    // Last resort - create a new window and show it
+                    try
+                    {
+                        MainWindow = new MainWindow();
+                        MainWindow.Show();
+                    }
+                    catch (Exception fatalEx)
+                    {
+                        MessageBox.Show(
+                            $"Fatal error creating main window: {fatalEx.Message}\nThe application will now exit.",
+                            "Fatal Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+
+                        Shutdown();
+                    }
+                }
             }
         }
 
@@ -344,23 +425,53 @@ namespace ClipSage.App
 
         protected override void OnExit(ExitEventArgs e)
         {
-            // Save any application settings
-            ClipSage.App.Properties.Settings.Default.Save();
+            // Log that we're exiting
+            Console.WriteLine("Application is exiting...");
 
-            // Log application exit
             try
             {
-                Logger.Instance.Info("Application exiting");
-                Logger.Instance.Shutdown();
+                // Save any application settings
+                ClipSage.App.Properties.Settings.Default.Save();
+                Console.WriteLine("Application settings saved");
+
+                // Log application exit
+                try
+                {
+                    if (Logger.Instance != null)
+                    {
+                        Logger.Instance.Info($"Application exiting with exit code: {e.ApplicationExitCode}");
+                        Logger.Instance.Shutdown();
+                        Console.WriteLine("Logger shutdown complete");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error shutting down logger: {ex.Message}");
+                }
+
+                // Clean up any remaining resources
+                if (MainWindow is IDisposable disposable)
+                {
+                    try
+                    {
+                        disposable.Dispose();
+                        Console.WriteLine("MainWindow resources disposed");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error disposing MainWindow: {ex.Message}");
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error shutting down logger: {ex.Message}");
+                Console.WriteLine($"Error during application exit: {ex.Message}");
             }
-
-            // No need to dispose of any database connections as we're using XML files now
-
-            base.OnExit(e);
+            finally
+            {
+                Console.WriteLine("Application exit complete");
+                base.OnExit(e);
+            }
         }
     }
 }

@@ -11,6 +11,7 @@ using MahApps.Metro.Controls;
 using Hardcodet.Wpf.TaskbarNotification;
 using ClipSage.Core.Storage;
 using ClipSage.Core.Update;
+using ClipSage.Core.Logging;
 
 namespace ClipSage.App
 {
@@ -68,29 +69,73 @@ namespace ClipSage.App
             }
         }
 
+        /// <summary>
+        /// Indicates whether the tray icon has been successfully initialized
+        /// </summary>
+        public bool IsTrayIconInitialized { get; private set; }
+
         private void SetupTrayIcon()
         {
-            // Create the tray icon programmatically
-            _trayIcon = new Hardcodet.Wpf.TaskbarNotification.TaskbarIcon();
-            _trayIcon.ToolTipText = "ClipSage";
-            _trayIcon.TrayLeftMouseDown += TrayIcon_TrayLeftMouseDown;
-            _trayIcon.ContextMenu = Resources["TrayMenu"] as ContextMenu;
-
             try
             {
-                // Try to load the icon from resources
-                var iconUri = new Uri("pack://application:,,,/Resources/clipboard.ico", UriKind.Absolute);
-                _trayIcon.Icon = new System.Drawing.Icon(Application.GetResourceStream(iconUri).Stream);
+                // Log that we're setting up the tray icon
+                Console.WriteLine("Setting up tray icon...");
+                Logger.Instance.Info("Setting up tray icon");
+
+                // Create the tray icon programmatically
+                _trayIcon = new Hardcodet.Wpf.TaskbarNotification.TaskbarIcon();
+                _trayIcon.ToolTipText = "ClipSage";
+                _trayIcon.TrayLeftMouseDown += TrayIcon_TrayLeftMouseDown;
+                _trayIcon.ContextMenu = Resources["TrayMenu"] as ContextMenu;
+                _trayIcon.Visibility = Visibility.Visible; // Explicitly set visibility
+
+                try
+                {
+                    // Try to load the icon from resources
+                    var iconUri = new Uri("pack://application:,,,/Resources/clipboard.ico", UriKind.Absolute);
+                    _trayIcon.Icon = new System.Drawing.Icon(Application.GetResourceStream(iconUri).Stream);
+                    Console.WriteLine("Successfully loaded tray icon from resources");
+                    Logger.Instance.Info("Successfully loaded tray icon from resources");
+                }
+                catch (Exception ex)
+                {
+                    // If loading fails, use a system icon as fallback
+                    _trayIcon.Icon = System.Drawing.SystemIcons.Application;
+                    Console.WriteLine($"Failed to load tray icon: {ex.Message}");
+                    Logger.Instance.Warning($"Failed to load tray icon: {ex.Message}");
+                }
+
+                // Verify the tray icon is properly initialized
+                if (_trayIcon.Icon != null)
+                {
+                    IsTrayIconInitialized = true;
+                    Console.WriteLine("Tray icon successfully initialized");
+                    Logger.Instance.Info("Tray icon successfully initialized");
+                }
+                else
+                {
+                    IsTrayIconInitialized = false;
+                    Console.WriteLine("Tray icon initialization failed: Icon is null");
+                    Logger.Instance.Warning("Tray icon initialization failed: Icon is null");
+                }
+
+                // Update status bar on startup
+                _viewModel.EventStatusText = "ClipSage is running in the background";
             }
             catch (Exception ex)
             {
-                // If loading fails, use a system icon as fallback
-                _trayIcon.Icon = System.Drawing.SystemIcons.Application;
-                Console.WriteLine($"Failed to load tray icon: {ex.Message}");
-            }
+                // Log any exceptions during tray icon setup
+                IsTrayIconInitialized = false;
+                Console.WriteLine($"Error setting up tray icon: {ex.Message}");
+                Logger.Instance.Error("Error setting up tray icon", ex);
 
-            // Update status bar on startup
-            _viewModel.EventStatusText = "ClipSage is running in the background";
+                // Show a message to the user
+                MessageBox.Show(
+                    $"Failed to initialize system tray icon: {ex.Message}\n\nThe application will continue to run, but you may not see the tray icon.",
+                    "Tray Icon Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
         }
 
         private void RegisterGlobalHotkey()
@@ -193,11 +238,30 @@ namespace ClipSage.App
             // If minimize to tray is enabled and we're not forcing a close, hide the window instead of closing it
             if (_closeToTray && !_forceClose)
             {
-                e.Cancel = true;
-                Hide();
-                return;
+                // Only hide the window if the tray icon is properly initialized
+                if (IsTrayIconInitialized && _trayIcon != null)
+                {
+                    Console.WriteLine("Hiding window instead of closing (tray icon is initialized)");
+                    Logger.Instance.Info("Hiding window instead of closing (tray icon is initialized)");
+                    e.Cancel = true;
+                    Hide();
+                    return;
+                }
+                else
+                {
+                    // If the tray icon is not initialized, show a warning and proceed with closing
+                    Console.WriteLine("Cannot hide to tray: tray icon is not initialized");
+                    Logger.Instance.Warning("Cannot hide to tray: tray icon is not initialized");
+                    MessageBox.Show(
+                        "The system tray icon is not properly initialized. The application will exit instead of minimizing to tray.",
+                        "Tray Icon Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                }
             }
 
+            Console.WriteLine("Application is closing");
+            Logger.Instance.Info("Application is closing");
             base.OnClosing(e);
         }
 
@@ -230,9 +294,32 @@ namespace ClipSage.App
         {
             if (WindowState == WindowState.Minimized && _closeToTray)
             {
-                // Hide window instead of minimizing if we're using the tray
-                Hide();
-                WindowState = WindowState.Normal; // Reset state for next time
+                // Only hide the window if the tray icon is properly initialized
+                if (IsTrayIconInitialized && _trayIcon != null)
+                {
+                    Console.WriteLine("Hiding window instead of minimizing (tray icon is initialized)");
+                    Logger.Instance.Info("Hiding window instead of minimizing (tray icon is initialized)");
+
+                    // Hide window instead of minimizing if we're using the tray
+                    Hide();
+                    WindowState = WindowState.Normal; // Reset state for next time
+                }
+                else
+                {
+                    // If the tray icon is not initialized, show a warning and keep the window minimized
+                    Console.WriteLine("Cannot hide to tray: tray icon is not initialized");
+                    Logger.Instance.Warning("Cannot hide to tray: tray icon is not initialized");
+
+                    // Show a notification to the user
+                    MessageBox.Show(
+                        "The system tray icon is not properly initialized. The window will be minimized instead of hidden to tray.",
+                        "Tray Icon Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+
+                    // Keep the window minimized but visible
+                    WindowState = WindowState.Minimized;
+                }
             }
 
             base.OnStateChanged(e);
