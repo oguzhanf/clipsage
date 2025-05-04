@@ -61,15 +61,25 @@ namespace ClipSage.App.Converters
         {
             if (value is ClipboardDataType dataType)
             {
-                return dataType switch
+                var resourceKey = dataType switch
                 {
-                    ClipboardDataType.Text => "📄", // Document icon
-                    ClipboardDataType.Image => "🖼️", // Picture icon
-                    ClipboardDataType.FilePaths => "📁", // Folder icon
-                    _ => "❓", // Question mark for unknown types
+                    ClipboardDataType.Text => "TextDocumentIcon",
+                    ClipboardDataType.Image => "ImageIcon",
+                    ClipboardDataType.FilePaths => "FolderIcon",
+                    _ => "UnknownIcon",
                 };
+
+                // Get the resource from the application resources
+                if (Application.Current != null)
+                {
+                    return Application.Current.Resources[resourceKey] as DrawingImage ??
+                           Application.Current.Resources["UnknownIcon"] as DrawingImage ??
+                           new DrawingImage(new DrawingGroup());
+                }
             }
-            return "❓";
+
+            // Create a default icon if Application.Current is null (for unit tests)
+            return new DrawingImage(new DrawingGroup());
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

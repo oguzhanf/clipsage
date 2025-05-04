@@ -164,6 +164,7 @@ namespace ClipSage.App
                         var resourceKey = DataType switch
                         {
                             ClipSage.Core.Storage.ClipboardDataType.Text => "TextDocumentIcon",
+                            ClipSage.Core.Storage.ClipboardDataType.Image => "ImageIcon",
                             ClipSage.Core.Storage.ClipboardDataType.FilePaths => "FolderIcon",
                             _ => "UnknownIcon"
                         };

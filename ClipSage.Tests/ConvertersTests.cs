@@ -120,48 +120,45 @@ namespace ClipSage.Tests
         }
 
         [Fact]
-        public void DataTypeToIconConverter_TextType_ShouldReturnExpectedIcon()
+        public void DataTypeToIconConverter_TextType_ShouldReturnDrawingImage()
         {
             // Arrange
             var converter = new DataTypeToIconConverter();
 
             // Act
-            var result = converter.Convert(ClipboardDataType.Text, typeof(string), null, _culture);
+            var result = converter.Convert(ClipboardDataType.Text, typeof(DrawingImage), null, _culture);
 
             // Assert
             Assert.NotNull(result);
-            Assert.IsType<string>(result);
-            Assert.Equal("📄", result);
+            Assert.IsType<DrawingImage>(result);
         }
 
         [Fact]
-        public void DataTypeToIconConverter_ImageType_ShouldReturnExpectedIcon()
+        public void DataTypeToIconConverter_ImageType_ShouldReturnDrawingImage()
         {
             // Arrange
             var converter = new DataTypeToIconConverter();
 
             // Act
-            var result = converter.Convert(ClipboardDataType.Image, typeof(string), null, _culture);
+            var result = converter.Convert(ClipboardDataType.Image, typeof(DrawingImage), null, _culture);
 
             // Assert
             Assert.NotNull(result);
-            Assert.IsType<string>(result);
-            Assert.Equal("🖼️", result);
+            Assert.IsType<DrawingImage>(result);
         }
 
         [Fact]
-        public void DataTypeToIconConverter_FilePathsType_ShouldReturnExpectedIcon()
+        public void DataTypeToIconConverter_FilePathsType_ShouldReturnDrawingImage()
         {
             // Arrange
             var converter = new DataTypeToIconConverter();
 
             // Act
-            var result = converter.Convert(ClipboardDataType.FilePaths, typeof(string), null, _culture);
+            var result = converter.Convert(ClipboardDataType.FilePaths, typeof(DrawingImage), null, _culture);
 
             // Assert
             Assert.NotNull(result);
-            Assert.IsType<string>(result);
-            Assert.Equal("📁", result);
+            Assert.IsType<DrawingImage>(result);
         }
         [Fact]
         public void DataTypeToLabelConverter_TextType_ShouldReturnExpectedLabel()

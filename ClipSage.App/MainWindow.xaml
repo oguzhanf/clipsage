@@ -88,15 +88,15 @@
                     </Button>
                     <Button x:Name="TextFilterButton" Style="{StaticResource MaterialDesignRaisedButton}" Width="32" Height="32" Margin="2" Click="TextFilterButton_Click"
                             ToolTip="Show only text items" Background="{DynamicResource PrimaryHueMidBrush}" materialDesign:ShadowAssist.ShadowDepth="Depth2">
-                        <TextBlock Text="📄" Foreground="White" />
+                        <Image Source="{StaticResource TextDocumentIcon}" Width="16" Height="16" />
                     </Button>
                     <Button x:Name="ImageFilterButton" Style="{StaticResource MaterialDesignRaisedButton}" Width="32" Height="32" Margin="2" Click="ImageFilterButton_Click"
                             ToolTip="Show only image items" Background="#4CAF50" materialDesign:ShadowAssist.ShadowDepth="Depth2">
-                        <TextBlock Text="🖼️" Foreground="White" />
+                        <Image Source="{StaticResource ImageIcon}" Width="16" Height="16" />
                     </Button>
                     <Button x:Name="FileFilterButton" Style="{StaticResource MaterialDesignRaisedButton}" Width="32" Height="32" Margin="2" Click="FileFilterButton_Click"
                             ToolTip="Show only file items" Background="#9E9E9E" materialDesign:ShadowAssist.ShadowDepth="Depth2">
-                        <TextBlock Text="📁" Foreground="White" />
+                        <Image Source="{StaticResource FolderIcon}" Width="16" Height="16" />
                     </Button>
                 </StackPanel>
 
@@ -107,7 +107,8 @@
                           Background="White"
                           ScrollViewer.VerticalScrollBarVisibility="Auto"
                           VirtualizingPanel.ScrollUnit="Pixel"
-                          materialDesign:ElevationAssist.Elevation="Dp2">
+                          materialDesign:ElevationAssist.Elevation="Dp2"
+                          Margin="0,0,0,5">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <Grid Margin="5">
@@ -125,7 +126,7 @@
                                     <Border Grid.Row="0" Width="32" Height="32" Margin="0,0,0,2"
                                             Background="{Binding DataType, Converter={StaticResource DataTypeToColorConverter}}"
                                             CornerRadius="16">
-                                        <Image Source="{Binding ThumbnailImage}"
+                                        <Image Source="{Binding DataType, Converter={StaticResource DataTypeToIconConverter}}"
                                                Width="24" Height="24"
                                                Stretch="Uniform"
                                                HorizontalAlignment="Center"
@@ -279,47 +280,24 @@
                                                    FontWeight="SemiBold" Margin="0,0,10,4" />
                                         <TextBlock Grid.Row="1" Grid.Column="1"
                                                    Text="{Binding Timestamp, StringFormat='{}{0:f}'}"
-                                                   Margin="0,0,0,4" />
+                                                   Margin="0,0,0,4"
+                                                   TextWrapping="Wrap" />
 
-                                        <!-- Age -->
-                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Age:"
+                                        <!-- Source Computer -->
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Source:"
                                                    FontWeight="SemiBold" Margin="0,0,10,4" />
                                         <TextBlock Grid.Row="2" Grid.Column="1"
-                                                   Text="{Binding ItemAge}"
-                                                   Margin="0,0,0,4" />
+                                                   Text="{Binding FormattedComputerName}"
+                                                   Margin="0,0,0,4"
+                                                   TextWrapping="Wrap" />
 
-                                        <!-- Computer -->
-                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Source:"
+                                        <!-- Age -->
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Age:"
                                                    FontWeight="SemiBold" Margin="0,0,10,0" />
-                                        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
-                                            <Path Width="12" Height="12" Margin="0,0,5,0"
-                                                  Data="M2,2v20h20V2H2z M18,16h-4v4h-4v-4H6v-4h4V8h4v4h4V16z"
-                                                  Fill="#4CAF50"
-                                                  Visibility="{Binding ComputerName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Inverse}">
-                                                <Path.Style>
-                                                    <Style TargetType="Path">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding ComputerName}" Value="{x:Static sys:Environment.MachineName}">
-                                                                <Setter Property="Fill" Value="#757575" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Path.Style>
-                                            </Path>
-                                            <TextBlock Text="{Binding FormattedComputerName}">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Foreground" Value="#757575" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding ComputerName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Inverse}" Value="True">
-                                                                <Setter Property="Foreground" Value="#4CAF50" />
-                                                                <Setter Property="FontWeight" Value="SemiBold" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </StackPanel>
+                                        <TextBlock Grid.Row="3" Grid.Column="1"
+                                                   Text="{Binding ItemAge}"
+                                                   Margin="0,0,0,0"
+                                                   TextWrapping="Wrap" />
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -375,7 +353,7 @@
         </Grid>
 
         <!-- Status Bar -->
-        <StatusBar Grid.Row="3" Height="30">
+        <StatusBar Grid.Row="3" Height="30" Margin="0,5,0,0">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>

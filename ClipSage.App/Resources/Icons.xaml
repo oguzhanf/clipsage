@@ -1,6 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    
+
     <!-- Text Document Icon -->
     <DrawingImage x:Key="TextDocumentIcon">
         <DrawingImage.Drawing>
@@ -13,7 +13,20 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    
+
+    <!-- Image Icon -->
+    <DrawingImage x:Key="ImageIcon">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="#4CAF50">
+                    <GeometryDrawing.Geometry>
+                        <PathGeometry Figures="M8,12H56V52H8V12M12,16V48H52V16H12M20,20A4,4 0 0,1 24,24A4,4 0 0,1 20,28A4,4 0 0,1 16,24A4,4 0 0,1 20,20M44,44H20L30,34L36,40L40,36L44,40V44Z" />
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
     <!-- Folder Icon -->
     <DrawingImage x:Key="FolderIcon">
         <DrawingImage.Drawing>
@@ -26,7 +39,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    
+
     <!-- Unknown Icon -->
     <DrawingImage x:Key="UnknownIcon">
         <DrawingImage.Drawing>
@@ -42,5 +55,5 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    
+
 </ResourceDictionary>
