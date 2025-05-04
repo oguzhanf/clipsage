@@ -88,11 +88,11 @@ namespace ClipSage.App.Converters
                 {
                     ClipboardDataType.Text => "TXT",
                     ClipboardDataType.Image => "IMG",
-                    ClipboardDataType.FilePaths => "PATH",
-                    _ => "???",
+                    ClipboardDataType.FilePaths => "FILE",
+                    _ => "UNK",
                 };
             }
-            return "???";
+            return "UNK";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

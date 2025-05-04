@@ -205,7 +205,7 @@ namespace ClipSage.Tests
             // Assert
             Assert.NotNull(result);
             Assert.IsType<string>(result);
-            Assert.Equal("PATH", result);
+            Assert.Equal("FILE", result);
         }
     }
 }
