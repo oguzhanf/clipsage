@@ -35,6 +35,102 @@ namespace ClipSage.App
         public string? SourceFile => _entry.SourceFile;
         public string? ComputerName => _entry.ComputerName;
 
+        /// <summary>
+        /// Gets a formatted version of the computer name
+        /// </summary>
+        public string FormattedComputerName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(ComputerName))
+                    return "Unknown Computer";
+
+                // If it's the local computer, show "This Computer"
+                if (ComputerName == Environment.MachineName)
+                    return "This Computer";
+
+                // Otherwise, show the actual computer name
+                return ComputerName;
+            }
+        }
+
+        /// <summary>
+        /// Gets a human-readable string representing the age of this item
+        /// </summary>
+        public string ItemAge
+        {
+            get
+            {
+                var timeSpan = DateTime.UtcNow - Timestamp;
+
+                if (timeSpan.TotalDays >= 1)
+                {
+                    int days = (int)timeSpan.TotalDays;
+                    int hours = timeSpan.Hours;
+
+                    if (hours > 0)
+                        return $"{days} day{(days > 1 ? "s" : "")}, {hours} hour{(hours > 1 ? "s" : "")} ago";
+                    else
+                        return $"{days} day{(days > 1 ? "s" : "")} ago";
+                }
+                else if (timeSpan.TotalHours >= 1)
+                {
+                    int hours = (int)timeSpan.TotalHours;
+                    int minutes = timeSpan.Minutes;
+
+                    if (minutes > 0)
+                        return $"{hours} hour{(hours > 1 ? "s" : "")}, {minutes} minute{(minutes > 1 ? "s" : "")} ago";
+                    else
+                        return $"{hours} hour{(hours > 1 ? "s" : "")} ago";
+                }
+                else if (timeSpan.TotalMinutes >= 1)
+                {
+                    int minutes = (int)timeSpan.TotalMinutes;
+                    return $"{minutes} minute{(minutes > 1 ? "s" : "")} ago";
+                }
+                else
+                {
+                    return "Just now";
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a string indicating whether this item is from the local computer or another computer
+        /// </summary>
+        public string SourceComputer
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(ComputerName))
+                    return "Unknown Source";
+
+                if (ComputerName == Environment.MachineName)
+                    return "From This Computer";
+
+                return $"From {ComputerName}";
+            }
+        }
+
+        /// <summary>
+        /// Gets a string describing the type of content
+        /// </summary>
+        public string ContentTypeDescription
+        {
+            get
+            {
+                return DataType switch
+                {
+                    ClipSage.Core.Storage.ClipboardDataType.Text => "Text Content",
+                    ClipSage.Core.Storage.ClipboardDataType.Image => "Image Content",
+                    ClipSage.Core.Storage.ClipboardDataType.FilePaths => FilePaths != null && FilePaths.Length > 1
+                        ? $"{FilePaths.Length} Files"
+                        : "File Path",
+                    _ => "Unknown Content"
+                };
+            }
+        }
+
         public ImageSource? ThumbnailImage
         {
             get

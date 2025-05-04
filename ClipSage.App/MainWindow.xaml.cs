@@ -143,7 +143,7 @@ namespace ClipSage.App
             {
                 try
                 {
-                    var imageViewModel = new ImagePreviewViewModel(_viewModel.SelectedEntry.ImageBytes);
+                    var imageViewModel = new ImagePreviewViewModel(_viewModel.SelectedEntry);
                     PreviewPane.ContentTemplate = PreviewPane.Resources["ImagePreviewTemplate"] as DataTemplate;
                     PreviewPane.Content = imageViewModel;
                 }
@@ -629,11 +629,28 @@ namespace ClipSage.App
 
     public class ImagePreviewViewModel
     {
+        private readonly ClipboardEntryViewModel _entryViewModel;
+
         public BitmapImage ImageSource { get; }
 
-        public ImagePreviewViewModel(byte[] imageBytes)
+        // Properties needed for the details card
+        public Guid Id => _entryViewModel.Id;
+        public DateTime Timestamp => _entryViewModel.Timestamp;
+        public ClipSage.Core.Storage.ClipboardDataType DataType => _entryViewModel.DataType;
+        public string? ComputerName => _entryViewModel.ComputerName;
+        public string FormattedComputerName => _entryViewModel.FormattedComputerName;
+        public string ItemAge => _entryViewModel.ItemAge;
+        public string SourceComputer => _entryViewModel.SourceComputer;
+        public string ContentTypeDescription => _entryViewModel.ContentTypeDescription;
+
+        public ImagePreviewViewModel(ClipboardEntryViewModel entryViewModel)
         {
-            using var stream = new MemoryStream(imageBytes);
+            _entryViewModel = entryViewModel;
+
+            if (entryViewModel.ImageBytes == null)
+                throw new ArgumentException("Entry does not contain image data");
+
+            using var stream = new MemoryStream(entryViewModel.ImageBytes);
             ImageSource = new BitmapImage();
             ImageSource.BeginInit();
             ImageSource.StreamSource = stream;

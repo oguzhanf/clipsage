@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:ClipSage.App"
         xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:tb="http://www.hardcodet.net/taskbar"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="ClipSage - Advanced Clipboard Manager"
         Height="600" Width="1000"
@@ -159,11 +160,58 @@
                                 </Grid>
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="{Binding DisplayText}" TextTrimming="CharacterEllipsis" />
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:g}'}" FontSize="10" Foreground="Gray" />
-                                        <TextBlock Text=" | " FontSize="10" Foreground="Gray" Visibility="{Binding ComputerName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Inverse}" />
-                                        <TextBlock Text="{Binding ComputerName}" FontSize="10" Foreground="Gray" Visibility="{Binding ComputerName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Inverse}" />
-                                    </StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Timestamp -->
+                                        <TextBlock Grid.Column="0" Text="{Binding Timestamp, StringFormat='{}{0:g}'}"
+                                                   FontSize="10" Foreground="Gray" Margin="0,0,5,0" />
+
+                                        <!-- Separator -->
+                                        <TextBlock Grid.Column="1" Text=" | " FontSize="10" Foreground="Gray" Margin="0,0,5,0" />
+
+                                        <!-- Computer Name with Icon -->
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <Path Width="10" Height="10" Margin="0,0,3,0"
+                                                  Data="M2,2v20h20V2H2z M18,16h-4v4h-4v-4H6v-4h4V8h4v4h4V16z"
+                                                  Fill="#4CAF50"
+                                                  Visibility="{Binding ComputerName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Inverse}">
+                                                <Path.Style>
+                                                    <Style TargetType="Path">
+                                                        <Style.Triggers>
+                                                            <!-- Change color for remote computers -->
+                                                            <DataTrigger Binding="{Binding ComputerName}" Value="{x:Static sys:Environment.MachineName}">
+                                                                <Setter Property="Fill" Value="Gray" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Path.Style>
+                                            </Path>
+                                            <TextBlock Text="{Binding FormattedComputerName}"
+                                                       FontSize="10"
+                                                       Visibility="{Binding ComputerName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Inverse}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="Gray" />
+                                                        <Style.Triggers>
+                                                            <!-- Highlight computer name for remote computers -->
+                                                            <DataTrigger Binding="{Binding ComputerName}" Value="{x:Static sys:Environment.MachineName}">
+                                                                <Setter Property="Foreground" Value="Gray" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding ComputerName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Inverse}" Value="True">
+                                                                <Setter Property="Foreground" Value="#4CAF50" />
+                                                                <Setter Property="FontWeight" Value="SemiBold" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Grid>
                                 </StackPanel>
                                 <Grid.ToolTip>
                                     <ToolTip>
@@ -215,23 +263,113 @@
                 <Border BorderBrush="#E0E0E0" BorderThickness="1" Background="White" CornerRadius="4">
                     <ContentControl x:Name="PreviewPane" Margin="10">
                         <ContentControl.Resources>
+                            <!-- Details Card Template -->
+                            <DataTemplate x:Key="DetailsCardTemplate">
+                                <Border Background="#F5F5F5" CornerRadius="4" Padding="10" Margin="0,0,0,10">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Header with content type -->
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                                                   Text="{Binding ContentTypeDescription}"
+                                                   FontWeight="Bold" FontSize="14" Margin="0,0,0,8" />
+
+                                        <!-- Date and Time -->
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Date:"
+                                                   FontWeight="SemiBold" Margin="0,0,10,4" />
+                                        <TextBlock Grid.Row="1" Grid.Column="1"
+                                                   Text="{Binding Timestamp, StringFormat='{}{0:f}'}"
+                                                   Margin="0,0,0,4" />
+
+                                        <!-- Age -->
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Age:"
+                                                   FontWeight="SemiBold" Margin="0,0,10,4" />
+                                        <TextBlock Grid.Row="2" Grid.Column="1"
+                                                   Text="{Binding ItemAge}"
+                                                   Margin="0,0,0,4" />
+
+                                        <!-- Computer -->
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Source:"
+                                                   FontWeight="SemiBold" Margin="0,0,10,0" />
+                                        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
+                                            <Path Width="12" Height="12" Margin="0,0,5,0"
+                                                  Data="M2,2v20h20V2H2z M18,16h-4v4h-4v-4H6v-4h4V8h4v4h4V16z"
+                                                  Fill="#4CAF50"
+                                                  Visibility="{Binding ComputerName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Inverse}">
+                                                <Path.Style>
+                                                    <Style TargetType="Path">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding ComputerName}" Value="{x:Static sys:Environment.MachineName}">
+                                                                <Setter Property="Fill" Value="#757575" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Path.Style>
+                                            </Path>
+                                            <TextBlock Text="{Binding FormattedComputerName}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="#757575" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding ComputerName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Inverse}" Value="True">
+                                                                <Setter Property="Foreground" Value="#4CAF50" />
+                                                                <Setter Property="FontWeight" Value="SemiBold" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+
+                            <!-- Text Preview Template with Details Card -->
                             <DataTemplate x:Key="TextPreviewTemplate">
-                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                    <TextBox Text="{Binding PlainText, Mode=OneWay}"
-                                             IsReadOnly="True"
-                                             TextWrapping="Wrap"
-                                             BorderThickness="0"
-                                             Background="Transparent" />
-                                </ScrollViewer>
+                                <DockPanel>
+                                    <!-- Details Card at the top -->
+                                    <ContentControl DockPanel.Dock="Top"
+                                                    ContentTemplate="{StaticResource DetailsCardTemplate}"
+                                                    Content="{Binding}" />
+
+                                    <!-- Text Content -->
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                                        <TextBox Text="{Binding PlainText, Mode=OneWay}"
+                                                 IsReadOnly="True"
+                                                 TextWrapping="Wrap"
+                                                 BorderThickness="0"
+                                                 Background="Transparent" />
+                                    </ScrollViewer>
+                                </DockPanel>
                             </DataTemplate>
+
+                            <!-- Image Preview Template with Details Card -->
                             <DataTemplate x:Key="ImagePreviewTemplate">
-                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                    <Image Source="{Binding ImageSource}"
-                                           Stretch="Uniform"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center" />
-                                </ScrollViewer>
+                                <DockPanel>
+                                    <!-- Details Card at the top -->
+                                    <ContentControl DockPanel.Dock="Top"
+                                                    ContentTemplate="{StaticResource DetailsCardTemplate}"
+                                                    Content="{Binding}" />
+
+                                    <!-- Image Content -->
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                                        <Image Source="{Binding ImageSource}"
+                                               Stretch="Uniform"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                    </ScrollViewer>
+                                </DockPanel>
                             </DataTemplate>
+
+                            <!-- Empty Preview Template -->
                             <DataTemplate x:Key="EmptyPreviewTemplate">
                                 <TextBlock Text="Select an item to preview"
                                            HorizontalAlignment="Center"
