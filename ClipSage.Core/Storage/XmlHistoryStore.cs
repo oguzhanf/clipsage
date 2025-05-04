@@ -246,11 +246,18 @@ namespace ClipSage.Core.Storage
                     var serializer = new XmlSerializer(typeof(List<ClipboardEntry>));
                     var entries = (List<ClipboardEntry>)serializer.Deserialize(fileStream);
 
-                    // Set the source file for each entry
+                    // Set the source file and computer name for each entry
                     string fileName = Path.GetFileName(filePath);
                     foreach (var entry in entries)
                     {
                         entry.SourceFile = fileName;
+
+                        // Extract computer name from the file name (format: history-COMPUTERNAME.xml)
+                        if (fileName.StartsWith("history-") && fileName.EndsWith(".xml"))
+                        {
+                            string computerName = fileName.Substring(8, fileName.Length - 12); // Remove "history-" and ".xml"
+                            entry.ComputerName = computerName;
+                        }
                     }
 
                     return entries;
@@ -302,10 +309,11 @@ namespace ClipSage.Core.Storage
                     .Take(MaxHistorySize)
                     .ToList();
 
-                // Set the source file for each entry
+                // Set the source file and computer name for each entry
                 foreach (var entry in localEntries)
                 {
                     entry.SourceFile = $"history-{_computerName}.xml";
+                    entry.ComputerName = _computerName;
                 }
 
                 // Create a temporary file
@@ -450,8 +458,9 @@ namespace ClipSage.Core.Storage
 
             try
             {
-                // Set the source file for the entry
+                // Set the source file and computer name for the entry
                 entry.SourceFile = $"history-{_computerName}.xml";
+                entry.ComputerName = _computerName;
 
                 // Add to in-memory history
                 lock (_historyLock)

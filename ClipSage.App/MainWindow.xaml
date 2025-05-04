@@ -157,8 +157,22 @@
                                 </Grid>
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="{Binding DisplayText}" TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:g}'}" FontSize="10" Foreground="Gray" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:g}'}" FontSize="10" Foreground="Gray" />
+                                        <TextBlock Text=" | " FontSize="10" Foreground="Gray" Visibility="{Binding ComputerName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Inverse}" />
+                                        <TextBlock Text="{Binding ComputerName}" FontSize="10" Foreground="Gray" Visibility="{Binding ComputerName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Inverse}" />
+                                    </StackPanel>
                                 </StackPanel>
+                                <Grid.ToolTip>
+                                    <ToolTip>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding DisplayText}" FontWeight="Bold" />
+                                            <TextBlock Text="{Binding Timestamp, StringFormat='Time: {0:g}'}" />
+                                            <TextBlock Text="{Binding ComputerName, StringFormat='Computer: {0}'}" Visibility="{Binding ComputerName, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Inverse}" />
+                                            <TextBlock Text="{Binding SourceFile, StringFormat='Source: {0}'}" Visibility="{Binding SourceFile, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Inverse}" />
+                                        </StackPanel>
+                                    </ToolTip>
+                                </Grid.ToolTip>
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>

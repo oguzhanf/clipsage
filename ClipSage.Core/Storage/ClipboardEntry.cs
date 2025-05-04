@@ -44,6 +44,11 @@ namespace ClipSage.Core.Storage
         public string? SourceFile { get; set; }
 
         /// <summary>
+        /// Gets or sets the computer name where this entry was created
+        /// </summary>
+        public string? ComputerName { get; set; }
+
+        /// <summary>
         /// Default constructor for serialization
         /// </summary>
         public ClipboardEntry()
@@ -62,7 +67,8 @@ namespace ClipSage.Core.Storage
                 Timestamp = this.Timestamp,
                 DataType = this.DataType,
                 PlainText = this.PlainText,
-                SourceFile = this.SourceFile
+                SourceFile = this.SourceFile,
+                ComputerName = this.ComputerName
             };
 
             // Deep copy image bytes

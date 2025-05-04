@@ -19,6 +19,7 @@ namespace ClipSage.App
         public byte[]? ImageBytes => _entry.ImageBytes;
         public string[]? FilePaths => _entry.FilePaths;
         public string? SourceFile => _entry.SourceFile;
+        public string? ComputerName => _entry.ComputerName;
 
         public string DisplayText
         {
