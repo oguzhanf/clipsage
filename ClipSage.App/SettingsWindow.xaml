@@ -18,28 +18,28 @@
         FontFamily="{materialDesign:MaterialDesignFont}"
         materialDesign:ElevationAssist.Elevation="Dp3">
 
-    <Grid Margin="20">
+    <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Settings" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"
+        <TextBlock Grid.Row="0" Text="Settings" FontSize="26" FontWeight="Bold" Margin="0,0,0,24"
                    Foreground="{DynamicResource PrimaryHueMidBrush}"
                    materialDesign:ShadowAssist.ShadowDepth="Depth1"/>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel>
                 <!-- General Settings -->
-                <materialDesign:Card Margin="0,0,0,16" materialDesign:ElevationAssist.Elevation="Dp2">
-                    <StackPanel Margin="16">
-                        <TextBlock Text="General" FontWeight="Bold" FontSize="16" Margin="0,0,0,8"/>
-                        <CheckBox Content="Start with Windows" IsChecked="{Binding StartWithWindows}" Margin="0,8"
+                <materialDesign:Card Margin="0,0,0,20" materialDesign:ElevationAssist.Elevation="Dp2">
+                    <StackPanel Margin="20">
+                        <TextBlock Text="General" FontWeight="Bold" FontSize="18" Margin="0,0,0,12"/>
+                        <CheckBox Content="Start with Windows" IsChecked="{Binding StartWithWindows}" Margin="0,8,0,12"
                                   Style="{StaticResource MaterialDesignCheckBox}"/>
-                        <CheckBox Content="Start minimized to tray" IsChecked="{Binding StartMinimized}" Margin="0,8"
+                        <CheckBox Content="Start minimized to tray" IsChecked="{Binding StartMinimized}" Margin="0,0,0,12"
                                   Style="{StaticResource MaterialDesignCheckBox}"/>
-                        <CheckBox Content="Minimize to tray when closed" IsChecked="{Binding MinimizeToTray}" Margin="0,8"
+                        <CheckBox Content="Minimize to tray when closed" IsChecked="{Binding MinimizeToTray}" Margin="0,0,0,8"
                                   Style="{StaticResource MaterialDesignCheckBox}"/>
                     </StackPanel>
                 </materialDesign:Card>
@@ -179,12 +179,12 @@
             </StackPanel>
         </ScrollViewer>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,5">
-            <Button Content="Cancel" Width="100" Height="40" Margin="0,0,16,0" Click="CancelButton_Click"
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,24,0,5">
+            <Button Content="Cancel" Width="110" Height="42" Margin="0,0,16,0" Click="CancelButton_Click"
                     Style="{StaticResource MaterialDesignOutlinedButton}"
                     materialDesign:ButtonAssist.CornerRadius="4"
                     materialDesign:ShadowAssist.ShadowDepth="Depth1"/>
-            <Button Content="Save" Width="100" Height="40" Click="SaveButton_Click"
+            <Button Content="Save" Width="110" Height="42" Click="SaveButton_Click"
                     Style="{StaticResource MaterialDesignRaisedButton}"
                     materialDesign:ButtonAssist.CornerRadius="4"
                     materialDesign:ShadowAssist.ShadowDepth="Depth3"

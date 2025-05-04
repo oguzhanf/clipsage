@@ -1,4 +1,5 @@
 ﻿﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Windows;
@@ -16,7 +17,7 @@ namespace ClipSage.App
         private string _destinationFolder;
         private bool _isManuallyEditing = false;
 
-        public string SelectedDestination { get; private set; }
+        public string SelectedDestination { get; private set; } = string.Empty;
         public bool CreateDesktopShortcut { get; private set; }
         public bool CreateStartMenuShortcut { get; private set; }
 
@@ -25,8 +26,8 @@ namespace ClipSage.App
             InitializeComponent();
 
             // Get the current executable path
-            _currentLocation = Assembly.GetExecutingAssembly().Location;
-            string executableDirectory = Path.GetDirectoryName(_currentLocation) ?? string.Empty;
+            _currentLocation = Process.GetCurrentProcess().MainModule?.FileName ?? "ClipSage.App.exe";
+            string executableDirectory = AppContext.BaseDirectory;
             CurrentLocationTextBlock.Text = executableDirectory;
 
             // Set default destination folder

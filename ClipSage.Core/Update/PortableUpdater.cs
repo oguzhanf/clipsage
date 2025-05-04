@@ -16,7 +16,7 @@ namespace ClipSage.Core.Update
         private static readonly HttpClient _httpClient = new HttpClient();
         private static readonly string _updateUrl = "https://api.github.com/repos/oguzhanf/clipsage/releases";
         private static readonly string _downloadBaseUrl = "https://github.com/oguzhanf/clipsage/releases/download";
-        private static readonly string _updaterFileName = "ClipSageUpdater.exe";
+        // private static readonly string _updaterFileName = "ClipSageUpdater.exe";
 
         /// <summary>
         /// Gets the URL used for checking updates
@@ -269,28 +269,28 @@ try {{
 
     # Find the executable in the extracted files
     $newExePath = Get-ChildItem -Path $tempExtractPath -Filter ""*.exe"" -Recurse | Select-Object -First 1 -ExpandProperty FullName
-    
+
     if (-not $newExePath) {{
         Write-Host ""Error: Could not find executable in update package.""
         exit 1
     }}
-    
+
     Write-Host ""Found new executable: $newExePath""
-    
+
     # Copy all files from the extracted directory to the app directory
     Write-Host ""Copying files to application directory...""
     $extractedDir = [System.IO.Path]::GetDirectoryName($newExePath)
     Copy-Item -Path ""$extractedDir\*"" -Destination $appDirectory -Recurse -Force
-    
+
     # Start the updated application
     Write-Host ""Starting updated application...""
     Start-Process -FilePath $appExePath
-    
+
     # Clean up
     Write-Host ""Cleaning up...""
     Remove-Item -Path $updateZipPath -Force -ErrorAction SilentlyContinue
     Remove-Item -Path $tempExtractPath -Recurse -Force -ErrorAction SilentlyContinue
-    
+
     Write-Host ""Update completed successfully!""
 }}
 catch {{

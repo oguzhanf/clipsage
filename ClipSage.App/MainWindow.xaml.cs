@@ -482,6 +482,7 @@ namespace ClipSage.App
 
         private async Task CheckForUpdatesAsync()
         {
+            await Task.Yield(); // Make this method actually async
             try
             {
                 // Update status to show we're checking

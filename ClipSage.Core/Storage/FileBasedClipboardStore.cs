@@ -152,7 +152,12 @@ namespace ClipSage.Core.Storage
             string metadataPath = Path.Combine(_textFolderPath, $"{id}.meta");
 
             if (!File.Exists(filePath) || !File.Exists(metadataPath))
-                return null;
+                return new ClipboardEntry
+                {
+                    Id = id,
+                    DataType = ClipboardDataType.Text,
+                    PlainText = string.Empty
+                };
 
             string text = await File.ReadAllTextAsync(filePath);
             string timestampStr = await File.ReadAllTextAsync(metadataPath);
@@ -173,7 +178,12 @@ namespace ClipSage.Core.Storage
             string metadataPath = Path.Combine(_imageFolderPath, $"{id}.meta");
 
             if (!File.Exists(filePath) || !File.Exists(metadataPath))
-                return null;
+                return new ClipboardEntry
+                {
+                    Id = id,
+                    DataType = ClipboardDataType.Image,
+                    ImageBytes = Array.Empty<byte>()
+                };
 
             byte[] imageBytes = await File.ReadAllBytesAsync(filePath);
             string timestampStr = await File.ReadAllTextAsync(metadataPath);
@@ -194,7 +204,12 @@ namespace ClipSage.Core.Storage
             string metadataPath = Path.Combine(_filePathsFolderPath, $"{id}.meta");
 
             if (!File.Exists(filePath) || !File.Exists(metadataPath))
-                return null;
+                return new ClipboardEntry
+                {
+                    Id = id,
+                    DataType = ClipboardDataType.FilePaths,
+                    FilePaths = Array.Empty<string>()
+                };
 
             string[] filePaths = await File.ReadAllLinesAsync(filePath);
             string timestampStr = await File.ReadAllTextAsync(metadataPath);

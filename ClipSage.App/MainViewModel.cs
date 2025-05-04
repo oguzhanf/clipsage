@@ -550,7 +550,7 @@ namespace ClipSage.App
 
                         if (fileCollection.Count == 1)
                         {
-                            string fileName = System.IO.Path.GetFileName(fileCollection[0]);
+                            string fileName = System.IO.Path.GetFileName(fileCollection[0] ?? string.Empty);
                             EventStatusText = $"Copied to clipboard: File \"{fileName}\"";
                         }
                         else
@@ -789,7 +789,7 @@ namespace ClipSage.App
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     // Store the current selection
-                    var selectedId = SelectedEntry?.Id;
+                    Guid? selectedId = SelectedEntry?.Id ?? null;
 
                     // Clear the collections
                     _allEntries.Clear();

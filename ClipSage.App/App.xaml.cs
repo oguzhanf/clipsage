@@ -25,7 +25,7 @@ namespace ClipSage.App
             base.OnStartup(e);
 
             // Store the original executable path
-            _originalExecutablePath = Assembly.GetExecutingAssembly().Location;
+            _originalExecutablePath = Process.GetCurrentProcess().MainModule?.FileName ?? "ClipSage.App.exe";
 
             // Check for command-line arguments
             if (e.Args.Length > 0)
@@ -398,6 +398,7 @@ namespace ClipSage.App
         /// </summary>
         private async void CheckForUpdatesAndExit()
         {
+            await Task.Yield(); // Make this method actually async
             try
             {
                 // Create a window to show progress

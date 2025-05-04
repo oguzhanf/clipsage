@@ -30,7 +30,7 @@ namespace ClipSage.Core.Storage
         /// <summary>
         /// Event raised when the history is updated from an external source
         /// </summary>
-        public event EventHandler<EventArgs> HistoryExternallyUpdated;
+        public event EventHandler<EventArgs>? HistoryExternallyUpdated;
 
         /// <summary>
         /// Creates a new instance of the XmlHistoryStore with the default cache folder
@@ -232,7 +232,7 @@ namespace ClipSage.Core.Storage
                 if (IsFileLocked(filePath))
                 {
                     Logger.Instance.Error($"File {filePath} is locked, cannot load history");
-                    return null;
+                    return new List<ClipboardEntry>();
                 }
 
                 using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -244,29 +244,32 @@ namespace ClipSage.Core.Storage
                     }
 
                     var serializer = new XmlSerializer(typeof(List<ClipboardEntry>));
-                    var entries = (List<ClipboardEntry>)serializer.Deserialize(fileStream);
+                    var entries = serializer.Deserialize(fileStream) as List<ClipboardEntry>;
 
                     // Set the source file and computer name for each entry
                     string fileName = Path.GetFileName(filePath);
-                    foreach (var entry in entries)
+                    if (entries != null)
                     {
-                        entry.SourceFile = fileName;
-
-                        // Extract computer name from the file name (format: history-COMPUTERNAME.xml)
-                        if (fileName.StartsWith("history-") && fileName.EndsWith(".xml"))
+                        foreach (var entry in entries)
                         {
-                            string computerName = fileName.Substring(8, fileName.Length - 12); // Remove "history-" and ".xml"
-                            entry.ComputerName = computerName;
+                            entry.SourceFile = fileName;
+
+                            // Extract computer name from the file name (format: history-COMPUTERNAME.xml)
+                            if (fileName.StartsWith("history-") && fileName.EndsWith(".xml"))
+                            {
+                                string computerName = fileName.Substring(8, fileName.Length - 12); // Remove "history-" and ".xml"
+                                entry.ComputerName = computerName;
+                            }
                         }
                     }
 
-                    return entries;
+                    return entries ?? new List<ClipboardEntry>();
                 }
             }
             catch (Exception ex)
             {
                 Logger.Instance.Error($"Error loading history from file {filePath}", ex);
-                return null;
+                return new List<ClipboardEntry>();
             }
         }
 
@@ -299,6 +302,7 @@ namespace ClipSage.Core.Storage
         /// </summary>
         private async Task SaveLocalHistoryAsync()
         {
+            await Task.Yield(); // Make this method actually async
             try
             {
                 // Get only entries from this computer
@@ -600,7 +604,7 @@ namespace ClipSage.Core.Storage
                 // Get the entry type before deleting
                 ClipboardDataType dataType = ClipboardDataType.Text; // Default
                 bool entryFound = false;
-                string sourceFile = null;
+                string? sourceFile = null;
 
                 lock (_historyLock)
                 {
@@ -652,7 +656,7 @@ namespace ClipSage.Core.Storage
             try
             {
                 bool entryFound = false;
-                string sourceFile = null;
+                string? sourceFile = null;
 
                 lock (_historyLock)
                 {

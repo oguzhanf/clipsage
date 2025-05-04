@@ -21,8 +21,7 @@ namespace ClipSage.App
             try
             {
                 // Get the current executable path
-                string executablePath = Assembly.GetExecutingAssembly().Location;
-                string executableDirectory = Path.GetDirectoryName(executablePath) ?? string.Empty;
+                string executableDirectory = AppContext.BaseDirectory;
 
                 // Check if the directory is writable
                 return IsDirectoryWritable(executableDirectory);
@@ -67,8 +66,7 @@ namespace ClipSage.App
         /// <returns>The default portable cache folder path</returns>
         public static string GetDefaultPortableCacheFolder()
         {
-            string executablePath = Assembly.GetExecutingAssembly().Location;
-            string executableDirectory = Path.GetDirectoryName(executablePath) ?? string.Empty;
+            string executableDirectory = AppContext.BaseDirectory;
             return Path.Combine(executableDirectory, "Cache");
         }
 
@@ -82,9 +80,9 @@ namespace ClipSage.App
             try
             {
                 // Get the current executable path
-                string executablePath = Assembly.GetExecutingAssembly().Location;
-                string executableDirectory = Path.GetDirectoryName(executablePath) ?? string.Empty;
-                string executableName = Path.GetFileName(executablePath);
+                string executableDirectory = AppContext.BaseDirectory;
+                string executableName = Process.GetCurrentProcess().MainModule?.FileName ?? "ClipSage.App.exe";
+                executableName = Path.GetFileName(executableName);
 
                 // Create the destination directory if it doesn't exist
                 if (!Directory.Exists(destinationPath))
