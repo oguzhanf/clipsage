@@ -161,25 +161,41 @@ namespace ClipSage.App
             {
                 // The HistoryStore.GetRecentAsync method now filters out duplicates
                 var entries = await _historyStore.GetRecentAsync(50);
-                _allEntries.Clear();
-                ClipboardEntries.Clear();
 
-                foreach (var entry in entries)
+                // Process on the UI thread to avoid cross-thread collection modification
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    var viewModel = new ClipboardEntryViewModel(entry);
-                    _allEntries.Add(viewModel);
-                    ClipboardEntries.Add(viewModel);
-                }
+                    _allEntries.Clear();
+                    ClipboardEntries.Clear();
+
+                    foreach (var entry in entries)
+                    {
+                        var viewModel = new ClipboardEntryViewModel(entry);
+                        _allEntries.Add(viewModel);
+                        ClipboardEntries.Add(viewModel);
+                    }
+                });
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading clipboard history: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                // Make sure error messages are shown on the UI thread
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    MessageBox.Show($"Error loading clipboard history: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                });
                 Logger.Instance.Error("Error loading clipboard history", ex);
             }
         }
 
         private void FilterEntries()
         {
+            // Ensure we're on the UI thread when modifying collections
+            if (!Application.Current.Dispatcher.CheckAccess())
+            {
+                Application.Current.Dispatcher.Invoke(() => FilterEntries());
+                return;
+            }
+
             // Start with all entries
             var filteredEntries = _allEntries.AsEnumerable();
 
@@ -737,8 +753,9 @@ namespace ClipSage.App
                 // First clean up duplicates
                 await CleanupDuplicatesAsync();
 
-                // Then load entries
-                await Task.Run(() => LoadRecentEntriesAsync());
+                // Then load entries - call directly instead of using Task.Run
+                // LoadRecentEntriesAsync already handles threading properly
+                LoadRecentEntriesAsync();
             }
             catch (Exception ex)
             {
@@ -760,7 +777,8 @@ namespace ClipSage.App
                     Logger.Instance.Info($"Removed {removedCount} duplicate entries from the database");
 
                     // Reload the entries if we removed any duplicates
-                    await Task.Run(() => LoadRecentEntriesAsync());
+                    // Call directly instead of using Task.Run
+                    LoadRecentEntriesAsync();
                 }
             }
             catch (Exception ex)
