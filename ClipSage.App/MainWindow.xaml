@@ -142,9 +142,11 @@
                                     <Border Grid.Row="0" Width="32" Height="32" Margin="0,0,0,2"
                                             Background="{Binding DataType, Converter={StaticResource DataTypeToColorConverter}}"
                                             CornerRadius="16">
-                                        <TextBlock Text="{Binding DataType, Converter={StaticResource DataTypeToIconConverter}}"
-                                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                   FontSize="16" />
+                                        <Image Source="{Binding ThumbnailImage}"
+                                               Width="24" Height="24"
+                                               Stretch="Uniform"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
                                     </Border>
 
                                     <!-- Label -->
@@ -182,6 +184,13 @@
                             <Setter Property="Padding" Value="5,10" />
                             <Setter Property="BorderThickness" Value="0,0,0,1" />
                             <Setter Property="BorderBrush" Value="#E0E0E0" />
+                            <Style.Triggers>
+                                <!-- Highlight items from other computers -->
+                                <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
+                                    <Setter Property="Background" Value="#FFF8E1" /> <!-- Light amber color -->
+                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                </DataTrigger>
+                            </Style.Triggers>
                         </Style>
                     </ListView.ItemContainerStyle>
                 </ListView>

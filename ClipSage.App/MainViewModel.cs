@@ -25,6 +25,9 @@ namespace ClipSage.App
         private ObservableCollection<ClipboardEntryViewModel> _allEntries = new();
         public ObservableCollection<ClipboardEntryViewModel> ClipboardEntries { get; set; } = new();
 
+        // Track the last time we processed an external update
+        private DateTime _lastExternalUpdateTime = DateTime.MinValue;
+
         private ClipboardEntryViewModel? _selectedEntry;
         public ClipboardEntryViewModel? SelectedEntry
         {
@@ -124,6 +127,13 @@ namespace ClipSage.App
 
             // Subscribe to clipboard changes
             _clipboardService.ClipboardChanged += OnClipboardChanged;
+
+            // Subscribe to external history updates (from other computers)
+            if (_historyStore is XmlHistoryStore xmlStore)
+            {
+                xmlStore.HistoryExternallyUpdated += OnHistoryExternallyUpdated;
+                Logger.Instance.Info("Subscribed to HistoryExternallyUpdated event");
+            }
 
             // Initialize monitoring state
             IsMonitoring = _clipboardService.IsMonitoring;
@@ -760,6 +770,83 @@ namespace ClipSage.App
             }
         }
 
+        /// <summary>
+        /// Handles external updates to the history (from other computers)
+        /// </summary>
+        private async void OnHistoryExternallyUpdated(object? sender, EventArgs e)
+        {
+            try
+            {
+                Logger.Instance.Info("External history update detected");
+
+                // Get the current time to identify new entries
+                var currentTime = DateTime.UtcNow;
+
+                // Load the updated entries
+                var entries = await _historyStore.GetRecentAsync(50);
+
+                // Process on the UI thread
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    // Store the current selection
+                    var selectedId = SelectedEntry?.Id;
+
+                    // Clear the collections
+                    _allEntries.Clear();
+                    ClipboardEntries.Clear();
+
+                    // Add all entries back
+                    foreach (var entry in entries)
+                    {
+                        var viewModel = new ClipboardEntryViewModel(entry);
+                        _allEntries.Add(viewModel);
+
+                        // Check if this is a new entry from another computer
+                        bool isNewFromOtherComputer =
+                            entry.Timestamp > _lastExternalUpdateTime &&
+                            !string.IsNullOrEmpty(entry.ComputerName) &&
+                            entry.ComputerName != Environment.MachineName;
+
+                        // Highlight new entries from other computers
+                        if (isNewFromOtherComputer)
+                        {
+                            viewModel.Highlight();
+                            Logger.Instance.Info($"Highlighting new entry from {entry.ComputerName}: {viewModel.DisplayText}");
+
+                            // Show notification in status bar
+                            EventStatusText = $"New clipboard item from {entry.ComputerName}";
+                        }
+
+                        // Only add to visible collection if it matches the current filters
+                        bool matchesTypeFilter = !CurrentFilterType.HasValue || entry.DataType == CurrentFilterType.Value;
+                        bool matchesTextFilter = string.IsNullOrWhiteSpace(SearchText) ||
+                            (entry.DataType == ClipboardDataType.Text &&
+                             entry.PlainText != null &&
+                             entry.PlainText.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+
+                        if (matchesTypeFilter && matchesTextFilter)
+                        {
+                            ClipboardEntries.Add(viewModel);
+                        }
+                    }
+
+                    // Restore selection if possible
+                    if (selectedId.HasValue)
+                    {
+                        SelectedEntry = ClipboardEntries.FirstOrDefault(e => e.Id == selectedId);
+                    }
+                });
+
+                // Update the last update time
+                _lastExternalUpdateTime = currentTime;
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error("Error handling external history update", ex);
+                Console.WriteLine($"Error handling external history update: {ex.Message}");
+            }
+        }
+
         public void Dispose()
         {
             try
@@ -769,6 +856,12 @@ namespace ClipSage.App
 
                 // Unsubscribe from events
                 _clipboardService.ClipboardChanged -= OnClipboardChanged;
+
+                // Unsubscribe from external history updates
+                if (_historyStore is XmlHistoryStore xmlStore)
+                {
+                    xmlStore.HistoryExternallyUpdated -= OnHistoryExternallyUpdated;
+                }
 
                 // Dispose the timer
                 _cleanupTimer?.Dispose();
