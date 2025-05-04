@@ -2,16 +2,15 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using ClipSage.Core.Storage;
-using LiteDB;
 using Xunit;
 
 namespace ClipSage.Tests
 {
     public class HistoryStoreTests
     {
-        private HistoryStore CreateInMemoryStore()
+        private IHistoryStore CreateInMemoryStore()
         {
-            return new HistoryStore();
+            return new XmlHistoryStore();
         }
 
         [Fact]

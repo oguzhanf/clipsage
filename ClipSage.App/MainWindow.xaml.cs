@@ -330,8 +330,8 @@ namespace ClipSage.App
                 _viewModel.UpdateStatusText = "Update check: Starting...";
 
                 // Check for updates
-                var updateChecker = UpdateChecker.Instance;
-                var updateInfo = await updateChecker.CheckForUpdateAsync(
+                var updater = PortableUpdater.Instance;
+                var updateInfo = await updater.CheckForUpdateAsync(
                     progress =>
                     {
                         // Update the status bar with progress
@@ -359,23 +359,25 @@ namespace ClipSage.App
                             $"ClipSage v{updateInfo.VersionString} is available. Click here to update.",
                             BalloonIcon.Info);
 
-                        // Handle balloon click to open the update check dialog
+                        // Handle balloon click to open the update dialog
                         _trayIcon.TrayBalloonTipClicked += (s, args) =>
                         {
                             Show();
                             WindowState = WindowState.Normal;
                             Activate();
 
-                            var updateCheckDialog = new UpdateCheckDialog();
-                            updateCheckDialog.Owner = this;
-                            updateCheckDialog.ShowDialog();
+                            var updateDialog = new PortableUpdateDialog();
+                            updateDialog.Owner = this;
+                            updateDialog.ShowDialog();
                         };
                     }
 
-                    // If auto-install is enabled, download and install the update
+                    // If auto-install is enabled, show the update dialog
                     if (Properties.Settings.Default.AutoInstallUpdates)
                     {
-                        await DownloadAndInstallUpdateAsync(updateInfo);
+                        var updateDialog = new PortableUpdateDialog();
+                        updateDialog.Owner = this;
+                        updateDialog.ShowDialog();
                     }
                 }
                 else
@@ -399,45 +401,13 @@ namespace ClipSage.App
                 // Update status to show we're checking
                 _viewModel.UpdateStatusText = "Update check: Starting...";
 
-                // Check for updates
-                var updateChecker = UpdateChecker.Instance;
-                var updateInfo = await updateChecker.CheckForUpdateAsync(
-                    progress =>
-                    {
-                        // Update the status bar with progress
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            _viewModel.UpdateStatusText = $"Update check: {progress}";
-                        });
-                    });
+                // Show the portable update dialog
+                var updateDialog = new PortableUpdateDialog();
+                updateDialog.Owner = this;
+                updateDialog.ShowDialog();
 
-                // Update the last check time
-                Properties.Settings.Default.LastUpdateCheck = DateTime.Now;
-                Properties.Settings.Default.Save();
-
-                // If an update is available, show a notification
-                if (updateInfo != null && updateInfo.IsUpdateAvailable)
-                {
-                    // Update status bar
-                    _viewModel.UpdateStatusText = $"Update available: v{updateInfo.VersionString}";
-
-                    // Show the update dialog
-                    var updateCheckDialog = new UpdateCheckDialog();
-                    updateCheckDialog.Owner = this;
-                    updateCheckDialog.ShowDialog();
-                }
-                else
-                {
-                    // No update available
-                    _viewModel.UpdateStatusText = "Update check: You have the latest version";
-
-                    // Show a message box
-                    MessageBox.Show(
-                        "You have the latest version of ClipSage.",
-                        "No Updates Available",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-                }
+                // Update the status bar after the dialog is closed
+                _viewModel.UpdateStatusText = "Update check completed";
             }
             catch (Exception ex)
             {

@@ -17,8 +17,8 @@ namespace ClipSage.App
         public ClipSage.Core.Storage.ClipboardDataType DataType => _entry.DataType;
         public string? PlainText => _entry.PlainText;
         public byte[]? ImageBytes => _entry.ImageBytes;
-
         public string[]? FilePaths => _entry.FilePaths;
+        public string? SourceFile => _entry.SourceFile;
 
         public string DisplayText
         {

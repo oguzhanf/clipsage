@@ -15,7 +15,7 @@ namespace ClipSage.App
     public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly ClipSage.Core.ClipboardService _clipboardService;
-        private readonly ClipSage.Core.Storage.HistoryStore _historyStore;
+        private readonly ClipSage.Core.Storage.IHistoryStore _historyStore;
 
         // Store the last clipboard content for duplicate detection
         private string? _lastTextContent = null;
@@ -115,11 +115,11 @@ namespace ClipSage.App
             string cacheFolderPath = Properties.Settings.Default.CachingFolder;
             if (Properties.Settings.Default.CachingFolderConfigured && !string.IsNullOrEmpty(cacheFolderPath))
             {
-                _historyStore = new ClipSage.Core.Storage.HistoryStore(cacheFolderPath);
+                _historyStore = new ClipSage.Core.Storage.XmlHistoryStore(cacheFolderPath);
             }
             else
             {
-                _historyStore = new ClipSage.Core.Storage.HistoryStore();
+                _historyStore = new ClipSage.Core.Storage.XmlHistoryStore();
             }
 
             // Subscribe to clipboard changes
@@ -772,6 +772,12 @@ namespace ClipSage.App
 
                 // Dispose the timer
                 _cleanupTimer?.Dispose();
+
+                // Dispose the XmlHistoryStore if it implements IDisposable
+                if (_historyStore is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
 
                 // Reset content trackers
                 _lastTextContent = null;

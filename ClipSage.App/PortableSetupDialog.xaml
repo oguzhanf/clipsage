@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<metro:MetroWindow x:Class="ClipSage.App.PortableSetupDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:local="clr-namespace:ClipSage.App"
+        mc:Ignorable="d"
+        Title="ClipSage Portable Setup"
+        Height="400" Width="600"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0" 
+                   Text="ClipSage Portable Setup" 
+                   FontSize="20" 
+                   FontWeight="Bold" 
+                   Margin="0,0,0,15"/>
+
+        <!-- Current Location Info -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,15">
+            <TextBlock Text="Current Application Location:" FontWeight="SemiBold"/>
+            <TextBlock x:Name="CurrentLocationTextBlock" 
+                       Text="C:\Path\To\Current\Location" 
+                       TextWrapping="Wrap"
+                       Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Destination Folder Selection -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,15">
+            <TextBlock Text="Destination Folder:" FontWeight="SemiBold"/>
+            <Grid Margin="0,5,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="DestinationFolderTextBox" 
+                         Grid.Column="0" 
+                         Margin="0,0,10,0"
+                         TextChanged="DestinationFolderTextBox_TextChanged"/>
+                <Button Grid.Column="1" 
+                        Content="Browse..." 
+                        Width="80" 
+                        Click="BrowseButton_Click"/>
+            </Grid>
+        </StackPanel>
+
+        <!-- Shortcut Options -->
+        <StackPanel Grid.Row="3" Margin="0,0,0,15">
+            <TextBlock Text="Shortcut Options:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+            <CheckBox x:Name="CreateDesktopShortcutCheckBox" 
+                      Content="Create desktop shortcut" 
+                      IsChecked="True" 
+                      Margin="0,5,0,5"/>
+            <CheckBox x:Name="CreateStartMenuShortcutCheckBox" 
+                      Content="Create start menu shortcut" 
+                      IsChecked="True" 
+                      Margin="0,0,0,5"/>
+        </StackPanel>
+
+        <!-- Warning for OneDrive -->
+        <Border Grid.Row="4" 
+                Background="#FFF4E5" 
+                BorderBrush="#FFD79B" 
+                BorderThickness="1" 
+                Padding="10" 
+                Margin="0,0,0,15"
+                x:Name="OneDriveWarningPanel"
+                Visibility="Collapsed">
+            <StackPanel>
+                <TextBlock Text="OneDrive Location Detected" 
+                           FontWeight="Bold" 
+                           Foreground="#E67E22"/>
+                <TextBlock Text="Using OneDrive for your cache location is a good choice for syncing clipboard history between devices, but be aware that the database file may occasionally be locked during sync operations." 
+                           TextWrapping="Wrap" 
+                           Margin="0,5,0,0" 
+                           Foreground="#7F5F00"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Status Message -->
+        <TextBlock Grid.Row="5" 
+                   x:Name="StatusMessageTextBlock" 
+                   TextWrapping="Wrap" 
+                   Margin="0,0,0,15"
+                   Foreground="Red"
+                   Visibility="Collapsed"/>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="7" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right">
+            <Button Content="Cancel" 
+                    Width="80" 
+                    Margin="0,0,10,0" 
+                    Click="CancelButton_Click"/>
+            <Button Content="Setup" 
+                    Width="80" 
+                    Click="SetupButton_Click"
+                    x:Name="SetupButton"/>
+        </StackPanel>
+    </Grid>
+</metro:MetroWindow>

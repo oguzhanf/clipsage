@@ -214,5 +214,66 @@ namespace ClipSage.Core.Storage
             // Implement cleanup logic to remove old entries when the number exceeds maxEntries
             // This would involve listing files, sorting by timestamp, and deleting the oldest ones
         }
+
+        /// <summary>
+        /// Deletes a clipboard entry from the file system
+        /// </summary>
+        /// <param name="id">The ID of the entry to delete</param>
+        /// <param name="dataType">The type of data in the entry</param>
+        public async Task DeleteClipboardEntryAsync(Guid id, ClipboardDataType dataType)
+        {
+            try
+            {
+                // Delete the files associated with this entry
+                string folder;
+                string extension;
+
+                switch (dataType)
+                {
+                    case ClipboardDataType.Text:
+                        folder = _textFolderPath;
+                        extension = "txt";
+                        break;
+                    case ClipboardDataType.Image:
+                        folder = _imageFolderPath;
+                        extension = "png";
+                        break;
+                    case ClipboardDataType.FilePaths:
+                        folder = _filePathsFolderPath;
+                        extension = "txt";
+                        break;
+                    default:
+                        folder = _textFolderPath;
+                        extension = "txt";
+                        break;
+                }
+
+                string filePath = Path.Combine(folder, $"{id}.{extension}");
+                string metadataPath = Path.Combine(folder, $"{id}.meta");
+
+                if (File.Exists(filePath))
+                    File.Delete(filePath);
+
+                if (File.Exists(metadataPath))
+                    File.Delete(metadataPath);
+
+                // If this was a file paths entry, also delete any cached files
+                if (dataType == ClipboardDataType.FilePaths)
+                {
+                    string cacheFolder = Path.Combine(_filesCacheFolderPath, id.ToString());
+                    if (Directory.Exists(cacheFolder))
+                    {
+                        Directory.Delete(cacheFolder, true);
+                    }
+                }
+
+                await Task.CompletedTask; // To make this method async
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error($"Error deleting clipboard entry file for ID {id}", ex);
+                throw;
+            }
+        }
     }
 }

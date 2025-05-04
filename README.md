@@ -17,9 +17,20 @@ ClipSage is a powerful, free, and open-source clipboard management tool designed
 ### Getting Started
 
 1. Download the latest release from the [Releases page](https://github.com/oguzhanf/clipsage/releases)
-2. Run the installer and follow the instructions
-3. ClipSage will start automatically and appear in your system tray
-4. Press Ctrl+Shift+V to access your clipboard history
+2. Extract the ZIP file to any location
+3. Run ClipSage.App.exe
+4. The first time you run ClipSage, it will ask if you want to set up in a new location
+5. ClipSage will appear in your system tray
+6. Press Ctrl+Shift+V to access your clipboard history
+
+### Portable Mode
+
+ClipSage is now a fully portable application:
+
+- Run it from any location, including USB drives
+- All data is stored in a "Cache" folder next to the executable
+- Create shortcuts during first run or manually later
+- No installation required
 
 ### Building from Source
 
@@ -28,7 +39,6 @@ ClipSage is a powerful, free, and open-source clipboard management tool designed
 - Windows 10 or later
 - .NET 9 SDK
 - Visual Studio 2022 or later (optional)
-- WiX Toolset v6.0 (for MSI installers)
 
 #### Build Instructions
 
@@ -43,27 +53,22 @@ ClipSage is a powerful, free, and open-source clipboard management tool designed
    dotnet build
    ```
 
-3. Create an installer:
+3. Create a portable package:
    ```
-   .\build-msi.ps1
+   .\scripts\build-portable.ps1
    ```
 
    This will:
    - Build the solution
-   - Create an MSI installer in the `bin` directory
-
-#### Advanced Build Options
-
-For advanced build options, see the [build documentation](build/README.md).
+   - Create a ZIP file in the `bin` directory containing the portable application
 
 ### Project Structure
 
-- `src/Clipper.App`: The main WPF application
-- `src/Clipper.Core`: Core functionality and business logic
-- `src/Clipper.Tests`: Unit tests
-- `src/Clipper.Installer`: WiX installer project
-- `build`: Build scripts and tools
-- `bin`: Output directory for builds and installers
+- `ClipSage.App`: The main WPF application
+- `ClipSage.Core`: Core functionality and business logic
+- `ClipSage.Tests`: Unit tests
+- `scripts`: Build scripts
+- `bin`: Output directory for builds
 
 ## License
 

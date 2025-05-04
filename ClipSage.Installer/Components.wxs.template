@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-  <Fragment>
-    <ComponentGroup Id="PublishedComponents">
-      <!-- Components will be added here by the WiX heat tool -->
-    </ComponentGroup>
-  </Fragment>
-</Wix>
