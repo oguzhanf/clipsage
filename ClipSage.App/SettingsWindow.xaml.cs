@@ -5,14 +5,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using ClipSage.Core.Update;
-using MahApps.Metro.Controls;
 
 namespace ClipSage.App
 {
     /// <summary>
     /// Interaction logic for SettingsWindow.xaml
     /// </summary>
-    public partial class SettingsWindow : MetroWindow
+    public partial class SettingsWindow : Window
     {
         private readonly SettingsViewModel _viewModel;
 

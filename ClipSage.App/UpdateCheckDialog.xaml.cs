@@ -3,14 +3,13 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using ClipSage.Core.Update;
-using MahApps.Metro.Controls;
 
 namespace ClipSage.App
 {
     /// <summary>
     /// Interaction logic for UpdateCheckDialog.xaml
     /// </summary>
-    public partial class UpdateCheckDialog : MetroWindow
+    public partial class UpdateCheckDialog : Window
     {
         private UpdateInfo? _updateInfo;
         private readonly UpdateChecker _updateChecker;
@@ -19,7 +18,7 @@ namespace ClipSage.App
         {
             InitializeComponent();
             _updateChecker = UpdateChecker.Instance;
-            
+
             // Start checking for updates when the dialog is loaded
             Loaded += async (s, e) => await CheckForUpdatesAsync();
         }
@@ -37,10 +36,10 @@ namespace ClipSage.App
                 // Add timestamp
                 string timestamp = DateTime.Now.ToString("HH:mm:ss");
                 string formattedMessage = $"[{timestamp}] {message}\n";
-                
+
                 // Append to log
                 LogTextBox.AppendText(formattedMessage);
-                
+
                 // Scroll to the end
                 LogScrollViewer.ScrollToEnd();
             });
@@ -57,25 +56,25 @@ namespace ClipSage.App
                 Title = "Checking for Updates";
                 ProgressBar.IsIndeterminate = true;
                 DownloadButton.IsEnabled = false;
-                
+
                 // Log the start of the check
                 AddLogMessage("Starting update check...");
                 AddLogMessage($"Current version: {_updateChecker.CurrentVersion}");
                 AddLogMessage($"Connecting to: {_updateChecker.UpdateUrl}");
-                
+
                 // Check for updates
                 _updateInfo = await _updateChecker.CheckForUpdateAsync(
                     progress => AddLogMessage(progress)
                 );
-                
+
                 // Update the last check time in settings
                 Properties.Settings.Default.LastUpdateCheck = DateTime.Now;
                 Properties.Settings.Default.Save();
-                
+
                 // Update UI based on result
                 ProgressBar.IsIndeterminate = false;
                 ProgressBar.Value = 1.0;
-                
+
                 // Show the result
                 if (_updateInfo != null && _updateInfo.IsUpdateAvailable)
                 {
@@ -84,7 +83,7 @@ namespace ClipSage.App
                     AddLogMessage($"Release date: {_updateInfo.ReleaseDate.ToShortDateString()}");
                     AddLogMessage("Release notes:");
                     AddLogMessage($"{_updateInfo.ReleaseNotes}");
-                    
+
                     // Enable the download button
                     DownloadButton.IsEnabled = true;
                     DownloadButton.Content = $"Download v{_updateInfo.VersionString}";
@@ -99,7 +98,7 @@ namespace ClipSage.App
             {
                 // Log the error
                 AddLogMessage($"Error checking for updates: {ex.Message}", true);
-                
+
                 // Update UI
                 Title = "Update Check Failed";
                 ProgressBar.IsIndeterminate = false;
@@ -129,7 +128,7 @@ namespace ClipSage.App
             {
                 // Close this dialog
                 Close();
-                
+
                 // Create a progress dialog for the download
                 var progressDialog = new ProgressDialog
                 {

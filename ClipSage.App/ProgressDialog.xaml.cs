@@ -1,13 +1,12 @@
 using System;
 using System.Windows;
-using MahApps.Metro.Controls;
 
 namespace ClipSage.App
 {
     /// <summary>
     /// Interaction logic for ProgressDialog.xaml
     /// </summary>
-    public partial class ProgressDialog : MetroWindow
+    public partial class ProgressDialog : Window
     {
         private bool _isCancelled = false;
 

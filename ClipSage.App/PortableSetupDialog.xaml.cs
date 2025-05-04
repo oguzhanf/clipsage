@@ -3,7 +3,6 @@ using System.IO;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Forms;
-using MahApps.Metro.Controls;
 using MessageBox = System.Windows.MessageBox;
 
 namespace ClipSage.App
@@ -11,7 +10,7 @@ namespace ClipSage.App
     /// <summary>
     /// Interaction logic for PortableSetupDialog.xaml
     /// </summary>
-    public partial class PortableSetupDialog : MetroWindow
+    public partial class PortableSetupDialog : Window
     {
         private string _currentLocation;
         private string _destinationFolder;
@@ -68,7 +67,7 @@ namespace ClipSage.App
                     string currentDir = Path.GetDirectoryName(_currentLocation) ?? string.Empty;
                     if (string.Equals(selectedPath, currentDir, StringComparison.OrdinalIgnoreCase))
                     {
-                        MessageBox.Show("The destination folder cannot be the same as the current location.", 
+                        MessageBox.Show("The destination folder cannot be the same as the current location.",
                             "Invalid Folder", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
@@ -78,7 +77,7 @@ namespace ClipSage.App
                     {
                         _destinationFolder = selectedPath;
                         DestinationFolderTextBox.Text = _destinationFolder;
-                        
+
                         // Check if this is a OneDrive folder
                         CheckForOneDriveFolder(_destinationFolder);
                     }
@@ -106,7 +105,7 @@ namespace ClipSage.App
                     if (IsValidPath(enteredPath))
                     {
                         _destinationFolder = enteredPath;
-                        
+
                         // Check if this is a OneDrive folder
                         CheckForOneDriveFolder(_destinationFolder);
                     }
@@ -198,7 +197,7 @@ namespace ClipSage.App
                 {
                     fs.WriteByte(0);
                 }
-                
+
                 // If we get here, the directory is writable
                 File.Delete(testFile);
                 return true;

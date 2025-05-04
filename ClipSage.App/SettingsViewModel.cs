@@ -236,6 +236,9 @@ namespace ClipSage.App
             }
         }
 
+        // Formatter for slider values
+        public Func<double, string> SliderValueFormatter => (value) => value.ToString("0");
+
         public SettingsViewModel()
         {
             LoadSettings();

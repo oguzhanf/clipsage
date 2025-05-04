@@ -1,16 +1,22 @@
-<metro:MetroWindow x:Class="ClipSage.App.SettingsWindow"
+<Window x:Class="ClipSage.App.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClipSage.App"
-        xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="ClipSage Settings"
         MinHeight="500" MinWidth="550"
         Height="600" Width="550"
         WindowStartupLocation="CenterOwner"
-        GlowBrush="{DynamicResource MahApps.Brushes.Accent}">
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{materialDesign:MaterialDesignFont}"
+        materialDesign:ElevationAssist.Elevation="Dp3">
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -20,105 +26,169 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="Settings" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"
-                   Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                   Foreground="{DynamicResource PrimaryHueMidBrush}"
+                   materialDesign:ShadowAssist.ShadowDepth="Depth1"/>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel>
                 <!-- General Settings -->
-                <GroupBox Header="General" Margin="0,0,0,10">
-                    <StackPanel Margin="10">
-                        <CheckBox Content="Start with Windows" IsChecked="{Binding StartWithWindows}" Margin="0,5"/>
-                        <CheckBox Content="Start minimized to tray" IsChecked="{Binding StartMinimized}" Margin="0,5"/>
-                        <CheckBox Content="Minimize to tray when closed" IsChecked="{Binding MinimizeToTray}" Margin="0,5"/>
+                <materialDesign:Card Margin="0,0,0,16" materialDesign:ElevationAssist.Elevation="Dp2">
+                    <StackPanel Margin="16">
+                        <TextBlock Text="General" FontWeight="Bold" FontSize="16" Margin="0,0,0,8"/>
+                        <CheckBox Content="Start with Windows" IsChecked="{Binding StartWithWindows}" Margin="0,8"
+                                  Style="{StaticResource MaterialDesignCheckBox}"/>
+                        <CheckBox Content="Start minimized to tray" IsChecked="{Binding StartMinimized}" Margin="0,8"
+                                  Style="{StaticResource MaterialDesignCheckBox}"/>
+                        <CheckBox Content="Minimize to tray when closed" IsChecked="{Binding MinimizeToTray}" Margin="0,8"
+                                  Style="{StaticResource MaterialDesignCheckBox}"/>
                     </StackPanel>
-                </GroupBox>
+                </materialDesign:Card>
 
                 <!-- Clipboard History Settings -->
-                <GroupBox Header="Clipboard History" Margin="0,0,0,10">
-                    <StackPanel Margin="10">
-                        <DockPanel Margin="0,5">
-                            <TextBlock Text="Maximum history size:" VerticalAlignment="Center"/>
-                            <metro:NumericUpDown Value="{Binding MaxHistorySize}" Minimum="10" Maximum="1000" Margin="10,0,0,0"/>
-                        </DockPanel>
-                        <CheckBox Content="Ignore duplicate entries" IsChecked="{Binding IgnoreDuplicates}" Margin="0,5"/>
-                        <CheckBox Content="Truncate large text entries" IsChecked="{Binding TruncateLargeText}" Margin="0,5"/>
-                        <DockPanel Margin="20,5,0,5" IsEnabled="{Binding TruncateLargeText}">
-                            <TextBlock Text="Maximum text length (KB):" VerticalAlignment="Center"/>
-                            <metro:NumericUpDown Value="{Binding MaxTextLength}" Minimum="1" Maximum="1000" Margin="10,0,0,0"/>
-                        </DockPanel>
-                        <CheckBox Content="Ignore large images" IsChecked="{Binding IgnoreLargeImages}" Margin="0,5"/>
-                        <DockPanel Margin="20,5,0,5" IsEnabled="{Binding IgnoreLargeImages}">
-                            <TextBlock Text="Maximum image size (MB):" VerticalAlignment="Center"/>
-                            <metro:NumericUpDown Value="{Binding MaxImageSize}" Minimum="1" Maximum="100" Margin="10,0,0,0"/>
-                        </DockPanel>
+                <materialDesign:Card Margin="0,0,0,16" materialDesign:ElevationAssist.Elevation="Dp2">
+                    <StackPanel Margin="16">
+                        <TextBlock Text="Clipboard History" FontWeight="Bold" FontSize="16" Margin="0,0,0,8"/>
+                        <Grid Margin="0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Maximum history size:" VerticalAlignment="Center"/>
+                            <Slider Grid.Column="1" Value="{Binding MaxHistorySize}" Minimum="10" Maximum="1000" Margin="16,0,0,0"
+                                   Style="{StaticResource MaterialDesignDiscreteSlider}"/>
+                        </Grid>
+                        <CheckBox Content="Ignore duplicate entries" IsChecked="{Binding IgnoreDuplicates}" Margin="0,8"
+                                  Style="{StaticResource MaterialDesignCheckBox}"/>
+                        <CheckBox Content="Truncate large text entries" IsChecked="{Binding TruncateLargeText}" Margin="0,8"
+                                  Style="{StaticResource MaterialDesignCheckBox}"/>
+                        <Grid Margin="24,8,0,8" IsEnabled="{Binding TruncateLargeText}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Maximum text length (KB):" VerticalAlignment="Center"/>
+                            <Slider Grid.Column="1" Value="{Binding MaxTextLength}" Minimum="1" Maximum="1000" Margin="16,0,0,0"
+                                   Style="{StaticResource MaterialDesignDiscreteSlider}"/>
+                        </Grid>
+                        <CheckBox Content="Ignore large images" IsChecked="{Binding IgnoreLargeImages}" Margin="0,8"
+                                  Style="{StaticResource MaterialDesignCheckBox}"/>
+                        <Grid Margin="24,8,0,8" IsEnabled="{Binding IgnoreLargeImages}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Maximum image size (MB):" VerticalAlignment="Center"/>
+                            <Slider Grid.Column="1" Value="{Binding MaxImageSize}" Minimum="1" Maximum="100" Margin="16,0,0,0"
+                                   Style="{StaticResource MaterialDesignDiscreteSlider}"/>
+                        </Grid>
                     </StackPanel>
-                </GroupBox>
+                </materialDesign:Card>
 
                 <!-- Caching Settings -->
-                <GroupBox Header="Caching" Margin="0,0,0,10">
-                    <StackPanel Margin="10">
-                        <TextBlock Text="Caching Folder:" VerticalAlignment="Center" Margin="0,5"/>
-                        <Grid Margin="0,5">
+                <materialDesign:Card Margin="0,0,0,16" materialDesign:ElevationAssist.Elevation="Dp2">
+                    <StackPanel Margin="16">
+                        <TextBlock Text="Caching" FontWeight="Bold" FontSize="16" Margin="0,0,0,8"/>
+                        <TextBlock Text="Caching Folder:" VerticalAlignment="Center" Margin="0,8"/>
+                        <Grid Margin="0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBox x:Name="CachingFolderTextBox" Grid.Column="0" Text="{Binding CachingFolder, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     materialDesign:HintAssist.Hint="Enter folder path"
+                                     materialDesign:TextFieldAssist.HasClearButton="True"
+                                     materialDesign:ShadowAssist.ShadowDepth="Depth1"
                                      IsReadOnly="False" Margin="0,0,10,0"
                                      TextChanged="CachingFolderTextBox_TextChanged"
                                      ToolTip="Enter a folder path or use the Browse button to select one"/>
-                            <Button Grid.Column="1" Content="Browse..." Click="BrowseCachingFolder_Click" Width="80"/>
+                            <Button Grid.Column="1" Content="Browse..."
+                                    Style="{StaticResource MaterialDesignRaisedButton}"
+                                    materialDesign:ButtonAssist.CornerRadius="4"
+                                    materialDesign:ShadowAssist.ShadowDepth="Depth2"
+                                    Click="BrowseCachingFolder_Click" Width="80"/>
                         </Grid>
                         <TextBlock Text="Tip: Use a folder in OneDrive, Google Drive, or Dropbox to sync your clipboard data between systems."
-                                   TextWrapping="Wrap" Margin="0,5" Foreground="Gray"/>
+                                   TextWrapping="Wrap" Margin="0,8" Foreground="Gray"/>
                         <TextBlock x:Name="CachingFolderWarning" Visibility="Collapsed"
-                                   TextWrapping="Wrap" Margin="0,5" Foreground="Red"/>
+                                   TextWrapping="Wrap" Margin="0,8" Foreground="Red"/>
 
                         <CheckBox Content="Cache copied files (stores file paths by default)"
-                                  IsChecked="{Binding CacheFiles}" Margin="0,10,0,5"
+                                  IsChecked="{Binding CacheFiles}" Margin="0,16,0,8"
+                                  Style="{StaticResource MaterialDesignCheckBox}"
                                   ToolTip="When disabled, only file paths are stored. When enabled, files are copied to the cache folder."/>
 
-                        <DockPanel Margin="20,5,0,5" IsEnabled="{Binding CacheFiles}">
-                            <TextBlock Text="Maximum file cache size (MB):" VerticalAlignment="Center"/>
-                            <metro:NumericUpDown Value="{Binding MaxFileCacheSize}" Minimum="1" Maximum="1000" Margin="10,0,0,0"/>
-                        </DockPanel>
+                        <Grid Margin="24,8,0,8" IsEnabled="{Binding CacheFiles}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Maximum file cache size (MB):" VerticalAlignment="Center"/>
+                            <Slider Grid.Column="1" Value="{Binding MaxFileCacheSize}" Minimum="1" Maximum="1000" Margin="16,0,0,0"
+                                   Style="{StaticResource MaterialDesignDiscreteSlider}"/>
+                        </Grid>
 
                         <TextBlock Text="Note: Large file sets will not be cached automatically, only their paths will be stored."
-                                   TextWrapping="Wrap" Margin="0,5" Foreground="Gray"/>
+                                   TextWrapping="Wrap" Margin="0,8" Foreground="Gray"/>
                     </StackPanel>
-                </GroupBox>
+                </materialDesign:Card>
 
                 <!-- Hotkey Settings -->
-                <GroupBox Header="Hotkeys" Margin="0,0,0,10">
-                    <StackPanel Margin="10">
-                        <DockPanel Margin="0,5">
-                            <TextBlock Text="Quick picker hotkey:" VerticalAlignment="Center"/>
-                            <TextBox Text="Ctrl+Shift+V" IsReadOnly="True" Margin="10,0,0,0"
+                <materialDesign:Card Margin="0,0,0,16" materialDesign:ElevationAssist.Elevation="Dp2">
+                    <StackPanel Margin="16">
+                        <TextBlock Text="Hotkeys" FontWeight="Bold" FontSize="16" Margin="0,0,0,8"/>
+                        <Grid Margin="0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Quick picker hotkey:" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" Text="Ctrl+Shift+V" IsReadOnly="True" Margin="16,0,0,0"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     materialDesign:ShadowAssist.ShadowDepth="Depth1"
                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
-                        </DockPanel>
+                        </Grid>
                     </StackPanel>
-                </GroupBox>
+                </materialDesign:Card>
 
                 <!-- Update Settings -->
-                <GroupBox Header="Updates" Margin="0,0,0,10">
-                    <StackPanel Margin="10">
-                        <CheckBox Content="Automatically check for updates" IsChecked="{Binding CheckForUpdates}" Margin="0,5"/>
+                <materialDesign:Card Margin="0,0,0,16" materialDesign:ElevationAssist.Elevation="Dp2">
+                    <StackPanel Margin="16">
+                        <TextBlock Text="Updates" FontWeight="Bold" FontSize="16" Margin="0,0,0,8"/>
+                        <CheckBox Content="Automatically check for updates" IsChecked="{Binding CheckForUpdates}" Margin="0,8"
+                                  Style="{StaticResource MaterialDesignCheckBox}"/>
                         <CheckBox Content="Automatically install updates" IsChecked="{Binding AutoInstallUpdates}"
-                                  IsEnabled="{Binding CheckForUpdates}" Margin="20,5,0,5"/>
-                        <DockPanel Margin="0,10,0,5">
-                            <Button Content="Check for Updates Now" Click="CheckForUpdates_Click" Width="150" HorizontalAlignment="Left"/>
-                            <TextBlock x:Name="LastUpdateCheckText" Text="Last checked: Never" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                        </DockPanel>
-                        <TextBlock x:Name="UpdateStatusText" Visibility="Collapsed" Margin="0,5" TextWrapping="Wrap"/>
+                                  IsEnabled="{Binding CheckForUpdates}" Margin="24,8,0,8"
+                                  Style="{StaticResource MaterialDesignCheckBox}"/>
+                        <Grid Margin="0,16,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" Content="Check for Updates Now"
+                                    Style="{StaticResource MaterialDesignRaisedButton}"
+                                    materialDesign:ButtonAssist.CornerRadius="4"
+                                    materialDesign:ShadowAssist.ShadowDepth="Depth2"
+                                    Click="CheckForUpdates_Click" Width="180" HorizontalAlignment="Left"/>
+                            <TextBlock Grid.Column="1" x:Name="LastUpdateCheckText" Text="Last checked: Never"
+                                       VerticalAlignment="Center" Margin="16,0,0,0"/>
+                        </Grid>
+                        <TextBlock x:Name="UpdateStatusText" Visibility="Collapsed" Margin="0,8" TextWrapping="Wrap"/>
                     </StackPanel>
-                </GroupBox>
+                </materialDesign:Card>
             </StackPanel>
         </ScrollViewer>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,5">
-            <Button Content="Cancel" Width="80" Height="35" Margin="0,0,10,0" Click="CancelButton_Click"/>
-            <Button Content="Save" Width="80" Height="35" Click="SaveButton_Click"
-                    Background="{DynamicResource MahApps.Brushes.Accent}" Foreground="White"/>
+            <Button Content="Cancel" Width="100" Height="40" Margin="0,0,16,0" Click="CancelButton_Click"
+                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                    materialDesign:ButtonAssist.CornerRadius="4"
+                    materialDesign:ShadowAssist.ShadowDepth="Depth1"/>
+            <Button Content="Save" Width="100" Height="40" Click="SaveButton_Click"
+                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    materialDesign:ButtonAssist.CornerRadius="4"
+                    materialDesign:ShadowAssist.ShadowDepth="Depth3"
+                    Background="{DynamicResource PrimaryHueMidBrush}" Foreground="White"/>
         </StackPanel>
     </Grid>
-</metro:MetroWindow>
+</Window>

@@ -7,7 +7,6 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Input;
-using MahApps.Metro.Controls;
 using Hardcodet.Wpf.TaskbarNotification;
 using ClipSage.Core.Storage;
 using ClipSage.Core.Update;
@@ -18,7 +17,7 @@ namespace ClipSage.App
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : MetroWindow
+    public partial class MainWindow : Window
     {
         private readonly MainViewModel _viewModel;
         private bool _closeToTray;

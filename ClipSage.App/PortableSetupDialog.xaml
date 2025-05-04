@@ -1,15 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<metro:MetroWindow x:Class="ClipSage.App.PortableSetupDialog"
+<Window x:Class="ClipSage.App.PortableSetupDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:local="clr-namespace:ClipSage.App"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="ClipSage Portable Setup"
         Height="400" Width="600"
         WindowStartupLocation="CenterScreen"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{materialDesign:MaterialDesignFont}"
+        materialDesign:ElevationAssist.Elevation="Dp3"
         ResizeMode="NoResize">
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -24,17 +31,19 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <TextBlock Grid.Row="0" 
-                   Text="ClipSage Portable Setup" 
-                   FontSize="20" 
-                   FontWeight="Bold" 
-                   Margin="0,0,0,15"/>
+        <TextBlock Grid.Row="0"
+                   Text="ClipSage Portable Setup"
+                   FontSize="20"
+                   FontWeight="Bold"
+                   Margin="0,0,0,15"
+                   Foreground="{DynamicResource PrimaryHueMidBrush}"
+                   materialDesign:ShadowAssist.ShadowDepth="Depth1"/>
 
         <!-- Current Location Info -->
         <StackPanel Grid.Row="1" Margin="0,0,0,15">
             <TextBlock Text="Current Application Location:" FontWeight="SemiBold"/>
-            <TextBlock x:Name="CurrentLocationTextBlock" 
-                       Text="C:\Path\To\Current\Location" 
+            <TextBlock x:Name="CurrentLocationTextBlock"
+                       Text="C:\Path\To\Current\Location"
                        TextWrapping="Wrap"
                        Margin="0,5,0,0"/>
         </StackPanel>
@@ -47,70 +56,94 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBox x:Name="DestinationFolderTextBox" 
-                         Grid.Column="0" 
-                         Margin="0,0,10,0"
+                <TextBox x:Name="DestinationFolderTextBox"
+                         Grid.Column="0"
+                         Margin="0,0,16,0"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         materialDesign:HintAssist.Hint="Enter destination folder path"
+                         materialDesign:TextFieldAssist.HasClearButton="True"
+                         materialDesign:ShadowAssist.ShadowDepth="Depth1"
                          TextChanged="DestinationFolderTextBox_TextChanged"/>
-                <Button Grid.Column="1" 
-                        Content="Browse..." 
-                        Width="80" 
+                <Button Grid.Column="1"
+                        Content="Browse..."
+                        Width="100" Height="40"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        materialDesign:ButtonAssist.CornerRadius="4"
+                        materialDesign:ShadowAssist.ShadowDepth="Depth2"
                         Click="BrowseButton_Click"/>
             </Grid>
         </StackPanel>
 
         <!-- Shortcut Options -->
         <StackPanel Grid.Row="3" Margin="0,0,0,15">
-            <TextBlock Text="Shortcut Options:" FontWeight="SemiBold" Margin="0,0,0,5"/>
-            <CheckBox x:Name="CreateDesktopShortcutCheckBox" 
-                      Content="Create desktop shortcut" 
-                      IsChecked="True" 
-                      Margin="0,5,0,5"/>
-            <CheckBox x:Name="CreateStartMenuShortcutCheckBox" 
-                      Content="Create start menu shortcut" 
-                      IsChecked="True" 
-                      Margin="0,0,0,5"/>
+            <TextBlock Text="Shortcut Options:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+            <CheckBox x:Name="CreateDesktopShortcutCheckBox"
+                      Content="Create desktop shortcut"
+                      IsChecked="True"
+                      Style="{StaticResource MaterialDesignCheckBox}"
+                      Margin="0,8,0,8"/>
+            <CheckBox x:Name="CreateStartMenuShortcutCheckBox"
+                      Content="Create start menu shortcut"
+                      IsChecked="True"
+                      Style="{StaticResource MaterialDesignCheckBox}"
+                      Margin="0,0,0,8"/>
         </StackPanel>
 
         <!-- Warning for OneDrive -->
-        <Border Grid.Row="4" 
-                Background="#FFF4E5" 
-                BorderBrush="#FFD79B" 
-                BorderThickness="1" 
-                Padding="10" 
-                Margin="0,0,0,15"
-                x:Name="OneDriveWarningPanel"
-                Visibility="Collapsed">
-            <StackPanel>
-                <TextBlock Text="OneDrive Location Detected" 
-                           FontWeight="Bold" 
-                           Foreground="#E67E22"/>
-                <TextBlock Text="Using OneDrive for your cache location is a good choice for syncing clipboard history between devices, but be aware that the database file may occasionally be locked during sync operations." 
-                           TextWrapping="Wrap" 
-                           Margin="0,5,0,0" 
-                           Foreground="#7F5F00"/>
-            </StackPanel>
-        </Border>
+        <materialDesign:Card Grid.Row="4"
+                             Background="#FFF4E5"
+                             Margin="0,0,0,15"
+                             materialDesign:ElevationAssist.Elevation="Dp1"
+                             x:Name="OneDriveWarningPanel"
+                             Visibility="Collapsed">
+            <Grid Margin="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <materialDesign:PackIcon Kind="CloudWarning" Grid.Column="0" Width="24" Height="24"
+                                         Foreground="#E67E22" VerticalAlignment="Top" Margin="0,0,16,0"/>
+
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="OneDrive Location Detected"
+                               FontWeight="Bold"
+                               Foreground="#E67E22"/>
+                    <TextBlock Text="Using OneDrive for your cache location is a good choice for syncing clipboard history between devices, but be aware that the database file may occasionally be locked during sync operations."
+                               TextWrapping="Wrap"
+                               Margin="0,5,0,0"
+                               Foreground="#7F5F00"/>
+                </StackPanel>
+            </Grid>
+        </materialDesign:Card>
 
         <!-- Status Message -->
-        <TextBlock Grid.Row="5" 
-                   x:Name="StatusMessageTextBlock" 
-                   TextWrapping="Wrap" 
+        <TextBlock Grid.Row="5"
+                   x:Name="StatusMessageTextBlock"
+                   TextWrapping="Wrap"
                    Margin="0,0,0,15"
                    Foreground="Red"
                    Visibility="Collapsed"/>
 
         <!-- Buttons -->
-        <StackPanel Grid.Row="7" 
-                    Orientation="Horizontal" 
+        <StackPanel Grid.Row="7"
+                    Orientation="Horizontal"
                     HorizontalAlignment="Right">
-            <Button Content="Cancel" 
-                    Width="80" 
-                    Margin="0,0,10,0" 
-                    Click="CancelButton_Click"/>
-            <Button Content="Setup" 
-                    Width="80" 
+            <Button Content="Cancel"
+                    Width="100" Height="40"
+                    Margin="0,0,16,0"
+                    Click="CancelButton_Click"
+                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                    materialDesign:ButtonAssist.CornerRadius="4"
+                    materialDesign:ShadowAssist.ShadowDepth="Depth1"/>
+            <Button Content="Setup"
+                    Width="100" Height="40"
                     Click="SetupButton_Click"
-                    x:Name="SetupButton"/>
+                    x:Name="SetupButton"
+                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    materialDesign:ButtonAssist.CornerRadius="4"
+                    materialDesign:ShadowAssist.ShadowDepth="Depth3"
+                    Background="{DynamicResource PrimaryHueMidBrush}" Foreground="White"/>
         </StackPanel>
     </Grid>
-</metro:MetroWindow>
+</Window>

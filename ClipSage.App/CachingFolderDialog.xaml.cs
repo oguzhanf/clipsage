@@ -3,14 +3,13 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
-using MahApps.Metro.Controls;
 
 namespace ClipSage.App
 {
     /// <summary>
     /// Interaction logic for CachingFolderDialog.xaml
     /// </summary>
-    public partial class CachingFolderDialog : MetroWindow
+    public partial class CachingFolderDialog : Window
     {
         private string _selectedFolder = string.Empty;
         private bool _isManuallyEditing = false;
