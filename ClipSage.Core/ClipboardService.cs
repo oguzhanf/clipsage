@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ClipSage.Core
@@ -110,11 +111,30 @@ namespace ClipSage.Core
             {
                 if (m.Msg == NativeMethods.WM_CLIPBOARDUPDATE)
                 {
-                    var entry = GetClipboardEntry();
-                    if (entry != null)
+                    // Add a small delay to allow the source application to complete its clipboard operation
+                    // This helps prevent clipboard contention with other applications
+                    Task.Delay(75).ContinueWith(_ =>
                     {
-                        _service.OnClipboardChanged(entry);
-                    }
+                        try
+                        {
+                            // Use BeginInvoke to ensure clipboard access happens on the correct thread
+                            this.BeginInvoke(new Action(() =>
+                            {
+                                var entry = GetClipboardEntry();
+                                if (entry != null)
+                                {
+                                    _service.OnClipboardChanged(entry);
+                                }
+
+                                // Explicitly release the clipboard to ensure other applications can access it
+                                NativeMethods.CloseClipboard();
+                            }));
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error processing clipboard update: {ex.Message}");
+                        }
+                    }, TaskScheduler.Default);
                 }
                 base.WndProc(ref m);
             }
@@ -123,88 +143,107 @@ namespace ClipSage.Core
             {
                 try
                 {
-                    // Check for file paths first
-                    if (Clipboard.ContainsFileDropList())
+                    // Ensure we have proper access to the clipboard
+                    // This helps prevent conflicts with other applications
+                    if (!NativeMethods.OpenClipboard(this.Handle))
                     {
-                        var fileDropList = Clipboard.GetFileDropList();
-                        string[] filePaths = new string[fileDropList.Count];
-
-                        for (int i = 0; i < fileDropList.Count; i++)
-                        {
-                            filePaths[i] = fileDropList[i] ?? string.Empty;
-                        }
-
-                        return new ClipboardEntry
-                        {
-                            Id = Guid.NewGuid(),
-                            Timestamp = DateTime.UtcNow,
-                            DataType = ClipboardDataType.FilePaths,
-                            FilePaths = filePaths
-                        };
+                        Console.WriteLine("Failed to open clipboard");
+                        return null;
                     }
-                    // Check for text
-                    else if (Clipboard.ContainsText())
+
+                    try
                     {
-                        // Windows Snipping Tool puts both text and image in clipboard
-                        // If there's also an image, we'll handle it as an image to avoid duplication
-                        if (Clipboard.ContainsImage())
+                        // Check for file paths first
+                        if (Clipboard.ContainsFileDropList())
                         {
-                            string text = Clipboard.GetText();
-                            // Check if this is a screenshot from Windows Snipping Tool
-                            // The text is usually a file path to a temporary image
-                            if (text.StartsWith("file:///") &&
-                                (text.EndsWith(".png") || text.EndsWith(".jpg") || text.EndsWith(".jpeg") ||
-                                 text.EndsWith(".bmp") || text.EndsWith(".gif")))
+                            var fileDropList = Clipboard.GetFileDropList();
+                            string[] filePaths = new string[fileDropList.Count];
+
+                            for (int i = 0; i < fileDropList.Count; i++)
                             {
-                                // This is likely a screenshot, so we'll handle it as an image
-                                using var image = Clipboard.GetImage();
-                                if (image != null)
-                                {
-                                    using var stream = new System.IO.MemoryStream();
-                                    image.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
-                                    return new ClipboardEntry
-                                    {
-                                        Id = Guid.NewGuid(),
-                                        Timestamp = DateTime.UtcNow,
-                                        DataType = ClipboardDataType.Image,
-                                        ImageBytes = stream.ToArray()
-                                    };
-                                }
-                                // If image is null, fall back to text
+                                filePaths[i] = fileDropList[i] ?? string.Empty;
                             }
-                        }
 
-                        // Regular text
-                        return new ClipboardEntry
-                        {
-                            Id = Guid.NewGuid(),
-                            Timestamp = DateTime.UtcNow,
-                            DataType = ClipboardDataType.Text,
-                            PlainText = Clipboard.GetText()
-                        };
-                    }
-                    // Check for image
-                    else if (Clipboard.ContainsImage())
-                    {
-                        using var image = Clipboard.GetImage();
-                        if (image != null)
-                        {
-                            using var stream = new System.IO.MemoryStream();
-                            image.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
                             return new ClipboardEntry
                             {
                                 Id = Guid.NewGuid(),
                                 Timestamp = DateTime.UtcNow,
-                                DataType = ClipboardDataType.Image,
-                                ImageBytes = stream.ToArray()
+                                DataType = ClipboardDataType.FilePaths,
+                                FilePaths = filePaths
                             };
                         }
-                        // If image is null, return null
+                        // Check for text
+                        else if (Clipboard.ContainsText())
+                        {
+                            // Windows Snipping Tool puts both text and image in clipboard
+                            // If there's also an image, we'll handle it as an image to avoid duplication
+                            if (Clipboard.ContainsImage())
+                            {
+                                string text = Clipboard.GetText();
+                                // Check if this is a screenshot from Windows Snipping Tool
+                                // The text is usually a file path to a temporary image
+                                if (text.StartsWith("file:///") &&
+                                    (text.EndsWith(".png") || text.EndsWith(".jpg") || text.EndsWith(".jpeg") ||
+                                     text.EndsWith(".bmp") || text.EndsWith(".gif")))
+                                {
+                                    // This is likely a screenshot, so we'll handle it as an image
+                                    using var image = Clipboard.GetImage();
+                                    if (image != null)
+                                    {
+                                        using var stream = new System.IO.MemoryStream();
+                                        image.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                                        return new ClipboardEntry
+                                        {
+                                            Id = Guid.NewGuid(),
+                                            Timestamp = DateTime.UtcNow,
+                                            DataType = ClipboardDataType.Image,
+                                            ImageBytes = stream.ToArray()
+                                        };
+                                    }
+                                    // If image is null, fall back to text
+                                }
+                            }
+
+                            // Regular text
+                            return new ClipboardEntry
+                            {
+                                Id = Guid.NewGuid(),
+                                Timestamp = DateTime.UtcNow,
+                                DataType = ClipboardDataType.Text,
+                                PlainText = Clipboard.GetText()
+                            };
+                        }
+                        // Check for image
+                        else if (Clipboard.ContainsImage())
+                        {
+                            using var image = Clipboard.GetImage();
+                            if (image != null)
+                            {
+                                using var stream = new System.IO.MemoryStream();
+                                image.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                                return new ClipboardEntry
+                                {
+                                    Id = Guid.NewGuid(),
+                                    Timestamp = DateTime.UtcNow,
+                                    DataType = ClipboardDataType.Image,
+                                    ImageBytes = stream.ToArray()
+                                };
+                            }
+                            // If image is null, return null
+                        }
+                    }
+                    finally
+                    {
+                        // Always close the clipboard when done to ensure other applications can access it
+                        NativeMethods.CloseClipboard();
                     }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error getting clipboard content: {ex.Message}");
+
+                    // Make sure clipboard is closed even if an exception occurs
+                    try { NativeMethods.CloseClipboard(); } catch { }
                 }
                 return null;
             }
@@ -232,6 +271,15 @@ namespace ClipSage.Core
 
             [DllImport("user32.dll")]
             public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+            [DllImport("user32.dll")]
+            public static extern bool OpenClipboard(IntPtr hWndNewOwner);
+
+            [DllImport("user32.dll")]
+            public static extern bool CloseClipboard();
+
+            [DllImport("user32.dll")]
+            public static extern bool EmptyClipboard();
         }
     }
 }

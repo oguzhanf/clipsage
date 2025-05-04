@@ -495,40 +495,49 @@ namespace ClipSage.App
         {
             try
             {
-                // Update our last content trackers before copying to prevent duplicates
-                switch (entry.DataType)
+                // Temporarily stop monitoring to prevent clipboard contention
+                bool wasMonitoring = _clipboardService.IsMonitoring;
+                if (wasMonitoring)
                 {
-                    case ClipSage.Core.Storage.ClipboardDataType.Text:
-                        _lastTextContent = entry.PlainText;
-                        break;
-                    case ClipSage.Core.Storage.ClipboardDataType.Image:
-                        _lastImageContent = entry.ImageBytes;
-                        break;
-                    case ClipSage.Core.Storage.ClipboardDataType.FilePaths:
-                        _lastFilePaths = entry.FilePaths;
-                        break;
+                    _clipboardService.StopMonitoring();
                 }
 
-                if (entry.DataType == ClipSage.Core.Storage.ClipboardDataType.Text)
+                try
                 {
-                    Clipboard.SetText(entry.PlainText ?? string.Empty);
-                    EventStatusText = $"Copied to clipboard: Text \"{GetTruncatedText(entry.PlainText, 40)}\"";
-                }
-                else if (entry.DataType == ClipSage.Core.Storage.ClipboardDataType.Image && entry.ImageBytes != null)
-                {
-                    using var stream = new System.IO.MemoryStream(entry.ImageBytes);
-                    var bitmap = new System.Windows.Media.Imaging.BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.StreamSource = stream;
-                    bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
-                    bitmap.EndInit();
-                    Clipboard.SetImage(bitmap);
-                    EventStatusText = "Copied to clipboard: Image";
-                }
-                else if (entry.DataType == ClipSage.Core.Storage.ClipboardDataType.FilePaths && entry.FilePaths != null && entry.FilePaths.Length > 0)
-                {
-                    // Create a StringCollection for the file paths
-                    var fileCollection = new System.Collections.Specialized.StringCollection();
+                    // Update our last content trackers before copying to prevent duplicates
+                    switch (entry.DataType)
+                    {
+                        case ClipSage.Core.Storage.ClipboardDataType.Text:
+                            _lastTextContent = entry.PlainText;
+                            break;
+                        case ClipSage.Core.Storage.ClipboardDataType.Image:
+                            _lastImageContent = entry.ImageBytes;
+                            break;
+                        case ClipSage.Core.Storage.ClipboardDataType.FilePaths:
+                            _lastFilePaths = entry.FilePaths;
+                            break;
+                    }
+
+                    if (entry.DataType == ClipSage.Core.Storage.ClipboardDataType.Text)
+                    {
+                        Clipboard.SetText(entry.PlainText ?? string.Empty);
+                        EventStatusText = $"Copied to clipboard: Text \"{GetTruncatedText(entry.PlainText, 40)}\"";
+                    }
+                    else if (entry.DataType == ClipSage.Core.Storage.ClipboardDataType.Image && entry.ImageBytes != null)
+                    {
+                        using var stream = new System.IO.MemoryStream(entry.ImageBytes);
+                        var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.StreamSource = stream;
+                        bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                        bitmap.EndInit();
+                        Clipboard.SetImage(bitmap);
+                        EventStatusText = "Copied to clipboard: Image";
+                    }
+                    else if (entry.DataType == ClipSage.Core.Storage.ClipboardDataType.FilePaths && entry.FilePaths != null && entry.FilePaths.Length > 0)
+                    {
+                        // Create a StringCollection for the file paths
+                        var fileCollection = new System.Collections.Specialized.StringCollection();
 
                     // Check if all files exist
                     bool allFilesExist = true;
@@ -584,6 +593,20 @@ namespace ClipSage.App
                         EventStatusText = "Error: No files found to copy";
                         MessageBox.Show("None of the original files exist and no cached copies were found.",
                             "Files Not Found", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+                }
+                finally
+                {
+                    // Restart monitoring if it was active before
+                    if (wasMonitoring)
+                    {
+                        // Add a small delay to ensure the clipboard operation completes
+                        Task.Delay(100).ContinueWith(_ =>
+                        {
+                            _clipboardService.StartMonitoring();
+                            IsMonitoring = _clipboardService.IsMonitoring;
+                        });
                     }
                 }
             }
