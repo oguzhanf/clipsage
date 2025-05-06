@@ -56,8 +56,7 @@ namespace ClipSage.App
             // Register global hotkey
             RegisterGlobalHotkey();
 
-            // Initialize filter button styles
-            UpdateFilterButtonStyles(null);
+
 
 
             // Check for updates on startup if enabled
@@ -642,78 +641,7 @@ namespace ClipSage.App
                 }
             }
         }
-        // Filter button click handlers
-        private void AllFilterButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Clear the filter
-            _viewModel.CurrentFilterType = null;
 
-            // Update button styles
-            UpdateFilterButtonStyles(null);
-        }
-
-        private void TextFilterButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Set filter to text
-            _viewModel.CurrentFilterType = ClipboardDataType.Text;
-
-            // Update button styles
-            UpdateFilterButtonStyles(ClipboardDataType.Text);
-        }
-
-        private void ImageFilterButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Set filter to image
-            _viewModel.CurrentFilterType = ClipboardDataType.Image;
-
-            // Update button styles
-            UpdateFilterButtonStyles(ClipboardDataType.Image);
-        }
-
-        private void FileFilterButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Set filter to file paths
-            _viewModel.CurrentFilterType = ClipboardDataType.FilePaths;
-
-            // Update button styles
-            UpdateFilterButtonStyles(ClipboardDataType.FilePaths);
-        }
-
-        private void UpdateFilterButtonStyles(ClipboardDataType? selectedType)
-        {
-            // Reset all buttons to default style
-            AllFilterButton.BorderThickness = new Thickness(1);
-            TextFilterButton.BorderThickness = new Thickness(1);
-            ImageFilterButton.BorderThickness = new Thickness(1);
-            FileFilterButton.BorderThickness = new Thickness(1);
-
-            AllFilterButton.BorderBrush = Brushes.Transparent;
-            TextFilterButton.BorderBrush = Brushes.Transparent;
-            ImageFilterButton.BorderBrush = Brushes.Transparent;
-            FileFilterButton.BorderBrush = Brushes.Transparent;
-
-            // Highlight the selected button
-            if (selectedType == null)
-            {
-                AllFilterButton.BorderThickness = new Thickness(2);
-                AllFilterButton.BorderBrush = Brushes.Black;
-            }
-            else if (selectedType == ClipboardDataType.Text)
-            {
-                TextFilterButton.BorderThickness = new Thickness(2);
-                TextFilterButton.BorderBrush = Brushes.Black;
-            }
-            else if (selectedType == ClipboardDataType.Image)
-            {
-                ImageFilterButton.BorderThickness = new Thickness(2);
-                ImageFilterButton.BorderBrush = Brushes.Black;
-            }
-            else if (selectedType == ClipboardDataType.FilePaths)
-            {
-                FileFilterButton.BorderThickness = new Thickness(2);
-                FileFilterButton.BorderBrush = Brushes.Black;
-            }
-        }
     }
 
     public class ImagePreviewViewModel

@@ -13,6 +13,8 @@
 
                 <!-- Custom icons -->
                 <ResourceDictionary Source="Resources/Icons.xaml" />
+
+
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Custom converters -->

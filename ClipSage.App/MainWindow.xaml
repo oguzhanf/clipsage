@@ -38,8 +38,8 @@
             <MenuItem Header="Exit" Click="Exit_Click"/>
         </ContextMenu>
 
-        <!-- Import icons from application resources -->
-        <DrawingImage x:Key="TextDocumentIcon" x:Shared="False">
+        <!-- Text Document Icon -->
+        <DrawingImage x:Key="TextDocumentIcon">
             <DrawingImage.Drawing>
                 <DrawingGroup>
                     <GeometryDrawing Brush="#2196F3">
@@ -51,7 +51,8 @@
             </DrawingImage.Drawing>
         </DrawingImage>
 
-        <DrawingImage x:Key="ImageIcon" x:Shared="False">
+        <!-- Image Icon -->
+        <DrawingImage x:Key="ImageIcon">
             <DrawingImage.Drawing>
                 <DrawingGroup>
                     <GeometryDrawing Brush="#4CAF50">
@@ -63,7 +64,8 @@
             </DrawingImage.Drawing>
         </DrawingImage>
 
-        <DrawingImage x:Key="FolderIcon" x:Shared="False">
+        <!-- Folder Icon -->
+        <DrawingImage x:Key="FolderIcon">
             <DrawingImage.Drawing>
                 <DrawingGroup>
                     <GeometryDrawing Brush="#FFA000">
@@ -75,15 +77,13 @@
             </DrawingImage.Drawing>
         </DrawingImage>
 
-        <DrawingImage x:Key="UnknownIcon" x:Shared="False">
+        <!-- Unknown Icon -->
+        <DrawingImage x:Key="UnknownIcon">
             <DrawingImage.Drawing>
                 <DrawingGroup>
                     <GeometryDrawing Brush="#9E9E9E">
                         <GeometryDrawing.Geometry>
-                            <PathGeometry Figures="M32,6C17.641,6,6,17.641,6,32c0,14.359,11.641,26,26,26s26-11.641,26-26C58,17.641,46.359,6,32,6z M32,54
-                                              c-12.15,0-22-9.85-22-22c0-12.15,9.85-22,22-22s22,9.85,22,22C54,44.15,44.15,54,32,54z M32,28c-2.209,0-4,1.791-4,4v12
-                                              c0,2.209,1.791,4,4,4s4-1.791,4-4V32C36,29.791,34.209,28,32,28z M32,16c-2.209,0-4,1.791-4,4s1.791,4,4,4s4-1.791,4-4
-                                              S34.209,16,32,16z" />
+                            <PathGeometry Figures="M32,6C17.641,6,6,17.641,6,32c0,14.359,11.641,26,26,26s26-11.641,26-26C58,17.641,46.359,6,32,6z M32,54c-12.15,0-22-9.85-22-22c0-12.15,9.85-22,22-22s22,9.85,22,22C54,44.15,44.15,54,32,54z M32,28c-2.209,0-4,1.791-4,4v12c0,2.209,1.791,4,4,4s4-1.791,4-4V32C36,29.791,34.209,28,32,28z M32,16c-2.209,0-4,1.791-4,4s1.791,4,4,4s4-1.791,4-4S34.209,16,32,16z" />
                         </GeometryDrawing.Geometry>
                     </GeometryDrawing>
                 </DrawingGroup>
@@ -97,6 +97,9 @@
         <converters:DataTypeToIconConverter x:Key="DataTypeToIconConverter" />
         <converters:DataTypeToLabelConverter x:Key="DataTypeToLabelConverter" />
         <converters:BooleanToMonitoringTextConverter x:Key="BooleanToMonitoringTextConverter" />
+        <converters:DataTypeToTextVisibilityConverter x:Key="DataTypeToTextVisibilityConverter" />
+        <converters:DataTypeToImageVisibilityConverter x:Key="DataTypeToImageVisibilityConverter" />
+        <converters:DataTypeToFileVisibilityConverter x:Key="DataTypeToFileVisibilityConverter" />
     </Window.Resources>
 
     <Grid Margin="10">
@@ -120,9 +123,8 @@
             </MenuItem>
         </Menu>
 
-        <!-- Header -->
-        <TextBlock Grid.Row="1" Text="ClipSage" FontSize="24" FontWeight="Bold" Margin="0,10,0,10" Foreground="{DynamicResource PrimaryHueMidBrush}"
-                   materialDesign:ShadowAssist.ShadowDepth="Depth1" />
+        <!-- Spacer -->
+        <Rectangle Grid.Row="1" Height="5" Fill="Transparent" />
 
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
@@ -140,26 +142,7 @@
                          materialDesign:ShadowAssist.ShadowDepth="Depth1"
                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
 
-                <!-- Filter Toolbar -->
-                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
-                    <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,5,0" />
-                    <Button x:Name="AllFilterButton" Style="{StaticResource MaterialDesignFlatButton}" Width="32" Height="32" Margin="2" Click="AllFilterButton_Click"
-                            ToolTip="Show all items" materialDesign:ShadowAssist.ShadowDepth="Depth1">
-                        <TextBlock Text="All" FontWeight="Bold" />
-                    </Button>
-                    <Button x:Name="TextFilterButton" Style="{StaticResource MaterialDesignRaisedButton}" Width="32" Height="32" Margin="2" Click="TextFilterButton_Click"
-                            ToolTip="Show only text items" Background="{DynamicResource PrimaryHueMidBrush}" materialDesign:ShadowAssist.ShadowDepth="Depth2">
-                        <Image Source="{StaticResource TextDocumentIcon}" Width="16" Height="16" />
-                    </Button>
-                    <Button x:Name="ImageFilterButton" Style="{StaticResource MaterialDesignRaisedButton}" Width="32" Height="32" Margin="2" Click="ImageFilterButton_Click"
-                            ToolTip="Show only image items" Background="#4CAF50" materialDesign:ShadowAssist.ShadowDepth="Depth2">
-                        <Image Source="{StaticResource ImageIcon}" Width="16" Height="16" />
-                    </Button>
-                    <Button x:Name="FileFilterButton" Style="{StaticResource MaterialDesignRaisedButton}" Width="32" Height="32" Margin="2" Click="FileFilterButton_Click"
-                            ToolTip="Show only file items" Background="#9E9E9E" materialDesign:ShadowAssist.ShadowDepth="Depth2">
-                        <Image Source="{StaticResource FolderIcon}" Width="16" Height="16" />
-                    </Button>
-                </StackPanel>
+
 
                 <ListView x:Name="ClipboardList" DockPanel.Dock="Bottom"
                           ItemsSource="{Binding ClipboardEntries}"
@@ -183,15 +166,61 @@
                                         <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
 
-                                    <!-- Icon -->
-                                    <Border Grid.Row="0" Width="32" Height="32" Margin="0,0,0,2"
+                                    <!-- Icon/Thumbnail -->
+                                    <Border Grid.Row="0" Width="48" Height="48" Margin="0,0,0,2"
                                             Background="{Binding DataType, Converter={StaticResource DataTypeToColorConverter}}"
-                                            CornerRadius="16">
-                                        <Image Source="{Binding DataType, Converter={StaticResource DataTypeToIconConverter}}"
-                                               Width="24" Height="24"
-                                               Stretch="Uniform"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center" />
+                                            CornerRadius="4">
+                                        <Grid>
+                                            <!-- Default Icon (shown when no thumbnail) -->
+                                            <Grid Visibility="{Binding ThumbnailImage, Converter={StaticResource NullToBooleanConverter}, ConverterParameter=Inverse}">
+                                                <!-- Text Icon -->
+                                                <TextBlock Text="T"
+                                                           FontWeight="Bold"
+                                                           FontSize="24"
+                                                           Foreground="White"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Visibility="{Binding DataType, Converter={StaticResource DataTypeToTextVisibilityConverter}}" />
+
+                                                <!-- Image Icon -->
+                                                <TextBlock Text="I"
+                                                           FontWeight="Bold"
+                                                           FontSize="24"
+                                                           Foreground="White"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Visibility="{Binding DataType, Converter={StaticResource DataTypeToImageVisibilityConverter}}" />
+
+                                                <!-- File Icon -->
+                                                <TextBlock Text="F"
+                                                           FontWeight="Bold"
+                                                           FontSize="24"
+                                                           Foreground="White"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Visibility="{Binding DataType, Converter={StaticResource DataTypeToFileVisibilityConverter}}" />
+                                            </Grid>
+
+                                            <!-- Thumbnail for images -->
+                                            <Image Source="{Binding ThumbnailImage}"
+                                                   Stretch="Uniform"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding DataType, Converter={StaticResource DataTypeToImageVisibilityConverter}}" />
+
+                                            <!-- Text preview for text items -->
+                                            <TextBlock Text="{Binding PlainText}"
+                                                       Foreground="White"
+                                                       FontSize="10"
+                                                       TextWrapping="Wrap"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Margin="4"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       MaxHeight="40"
+                                                       MaxWidth="40"
+                                                       Visibility="{Binding DataType, Converter={StaticResource DataTypeToTextVisibilityConverter}}" />
+                                        </Grid>
                                     </Border>
 
                                     <!-- Label -->
@@ -274,14 +303,38 @@
                         <Style TargetType="ListViewItem">
                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                             <Setter Property="Padding" Value="5,10" />
-                            <Setter Property="BorderThickness" Value="0,0,0,1" />
+                            <Setter Property="Margin" Value="2,3" />
+                            <Setter Property="BorderThickness" Value="1" />
                             <Setter Property="BorderBrush" Value="#E0E0E0" />
+                            <Setter Property="Background" Value="White" />
+                            <Setter Property="materialDesign:ElevationAssist.Elevation" Value="Dp1" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListViewItem">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="4"
+                                                Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
                             <Style.Triggers>
                                 <!-- Highlight items from other computers -->
                                 <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
                                     <Setter Property="Background" Value="#FFF8E1" /> <!-- Light amber color -->
                                     <Setter Property="FontWeight" Value="SemiBold" />
                                 </DataTrigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#E3F2FD" /> <!-- Light blue color -->
+                                    <Setter Property="BorderBrush" Value="#2196F3" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#F5F5F5" />
+                                </Trigger>
                             </Style.Triggers>
                         </Style>
                     </ListView.ItemContainerStyle>
@@ -415,53 +468,59 @@
         </Grid>
 
         <!-- Status Bar -->
-        <StatusBar Grid.Row="3" Height="30" Margin="0,5,0,0">
-            <StatusBar.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                    </Grid>
-                </ItemsPanelTemplate>
-            </StatusBar.ItemsPanel>
+        <Border Grid.Row="3" Margin="0,5,0,0"
+                BorderBrush="#E0E0E0" BorderThickness="1"
+                CornerRadius="4"
+                materialDesign:ElevationAssist.Elevation="Dp1"
+                materialDesign:ShadowAssist.ShadowDepth="Depth1">
+            <StatusBar Height="30">
+                <StatusBar.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                        </Grid>
+                    </ItemsPanelTemplate>
+                </StatusBar.ItemsPanel>
 
-            <!-- Monitoring Status Text -->
-            <StatusBarItem Grid.Column="0">
-                <TextBlock Text="{Binding MonitoringStatusText}" Margin="0,0,10,0" />
-            </StatusBarItem>
+                <!-- Monitoring Status Text -->
+                <StatusBarItem Grid.Column="0">
+                    <TextBlock Text="{Binding MonitoringStatusText}" Margin="5,0,10,0" />
+                </StatusBarItem>
 
-            <!-- Event Status Text -->
-            <StatusBarItem Grid.Column="1">
-                <TextBlock Text="{Binding EventStatusText}" Margin="0,0,10,0" FontWeight="SemiBold" />
-            </StatusBarItem>
+                <!-- Event Status Text -->
+                <StatusBarItem Grid.Column="1">
+                    <TextBlock Text="{Binding EventStatusText}" Margin="0,0,10,0" FontWeight="SemiBold" />
+                </StatusBarItem>
 
-            <!-- Update Status Text -->
-            <StatusBarItem Grid.Column="2">
-                <TextBlock Text="{Binding UpdateStatusText}" />
-            </StatusBarItem>
+                <!-- Update Status Text -->
+                <StatusBarItem Grid.Column="2">
+                    <TextBlock Text="{Binding UpdateStatusText}" />
+                </StatusBarItem>
 
-            <!-- Version Text -->
-            <StatusBarItem Grid.Column="3">
-                <TextBlock x:Name="VersionText" Margin="0,0,10,0" Foreground="Gray" />
-            </StatusBarItem>
+                <!-- Version Text -->
+                <StatusBarItem Grid.Column="3">
+                    <TextBlock x:Name="VersionText" Margin="0,0,10,0" Foreground="Gray" />
+                </StatusBarItem>
 
-            <!-- Monitoring Toggle Button -->
-            <StatusBarItem Grid.Column="4">
-                <ToggleButton x:Name="MonitoringToggle"
-                              Style="{StaticResource MaterialDesignSwitchToggleButton}"
-                              IsChecked="{Binding IsMonitoring, Mode=OneWay}"
-                              Click="MonitoringToggle_Click"
-                              Content="{Binding IsMonitoring, Converter={StaticResource BooleanToMonitoringTextConverter}}"
-                              materialDesign:ShadowAssist.ShadowDepth="Depth1"
-                              materialDesign:HintAssist.Hint="{Binding IsMonitoring, Converter={StaticResource BooleanToMonitoringTextConverter}}"
-                              Width="120"
-                              Padding="10,3" />
-            </StatusBarItem>
-        </StatusBar>
+                <!-- Monitoring Toggle Button -->
+                <StatusBarItem Grid.Column="4" Margin="0,0,5,0">
+                    <ToggleButton x:Name="MonitoringToggle"
+                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                  IsChecked="{Binding IsMonitoring, Mode=OneWay}"
+                                  Click="MonitoringToggle_Click"
+                                  Content="{Binding IsMonitoring, Converter={StaticResource BooleanToMonitoringTextConverter}}"
+                                  materialDesign:ShadowAssist.ShadowDepth="Depth1"
+                                  materialDesign:HintAssist.Hint="{Binding IsMonitoring, Converter={StaticResource BooleanToMonitoringTextConverter}}"
+                                  Width="120"
+                                  Padding="10,3" />
+                </StatusBarItem>
+            </StatusBar>
+        </Border>
     </Grid>
 </Window>
