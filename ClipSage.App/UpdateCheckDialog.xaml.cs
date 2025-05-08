@@ -180,7 +180,7 @@ namespace ClipSage.App
                 if (result == MessageBoxResult.Yes)
                 {
                     // Install the update
-                    if (_updateChecker.InstallUpdate(installerPath))
+                    if (installerPath != null && _updateChecker.InstallUpdate(installerPath))
                     {
                         // Close the application
                         Application.Current.Shutdown();

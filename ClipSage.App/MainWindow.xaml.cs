@@ -590,7 +590,7 @@ namespace ClipSage.App
                 if (!IsVisible && Properties.Settings.Default.AutoInstallUpdates)
                 {
                     // Install the update
-                    if (updateChecker.InstallUpdate(installerPath))
+                    if (installerPath != null && updateChecker.InstallUpdate(installerPath))
                     {
                         // Set flag to force close and exit the application
                         _forceClose = true;
@@ -609,7 +609,7 @@ namespace ClipSage.App
                 if (result == MessageBoxResult.Yes)
                 {
                     // Install the update
-                    if (updateChecker.InstallUpdate(installerPath))
+                    if (installerPath != null && updateChecker.InstallUpdate(installerPath))
                     {
                         // Set flag to force close and exit the application
                         _forceClose = true;

@@ -232,7 +232,7 @@ namespace ClipSage.App
                 {
                     // Install the update
                     AddLogMessage("Starting update installation...");
-                    if (_updater.RunUpdater(_downloadedUpdatePath))
+                    if (_downloadedUpdatePath != null && _updater.RunUpdater(_downloadedUpdatePath))
                     {
                         AddLogMessage("Update process started. The application will now close.");
 
