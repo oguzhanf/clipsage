@@ -8,7 +8,7 @@ namespace ClipSage.App.Converters
 {
     public class DataTypeToFileVisibilityConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is ClipboardDataType dataType)
             {
@@ -17,7 +17,7 @@ namespace ClipSage.App.Converters
             return Visibility.Collapsed;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }

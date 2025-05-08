@@ -33,7 +33,7 @@ namespace ClipSage.Tests
                 PlainText = "Test text"
             };
 
-            ClipboardEntry receivedEntry = null;
+            ClipboardEntry? receivedEntry = null;
             var eventRaised = new ManualResetEvent(false);
 
             service.ClipboardChanged += (sender, e) =>

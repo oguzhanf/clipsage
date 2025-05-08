@@ -9,12 +9,12 @@ namespace ClipSage.App.Converters
 {
     public class StringToVisibilityConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             return string.IsNullOrEmpty(value as string) ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
@@ -22,12 +22,12 @@ namespace ClipSage.App.Converters
 
     public class NullToBooleanConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             return value != null;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
@@ -35,7 +35,7 @@ namespace ClipSage.App.Converters
 
     public class DataTypeToColorConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is ClipboardDataType dataType)
             {
@@ -49,7 +49,7 @@ namespace ClipSage.App.Converters
             return new SolidColorBrush(Color.FromRgb(158, 158, 158)); // Gray
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
@@ -57,7 +57,7 @@ namespace ClipSage.App.Converters
 
     public class DataTypeToIconConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is ClipboardDataType dataType)
             {
@@ -82,7 +82,7 @@ namespace ClipSage.App.Converters
             return new DrawingImage(new DrawingGroup());
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
@@ -90,7 +90,7 @@ namespace ClipSage.App.Converters
 
     public class DataTypeToLabelConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is ClipboardDataType dataType)
             {
@@ -105,7 +105,7 @@ namespace ClipSage.App.Converters
             return "UNK";
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }

@@ -19,7 +19,7 @@ namespace ClipSage.Tests
             var converter = new StringToVisibilityConverter();
 
             // Act
-            var result = converter.Convert(string.Empty, typeof(Visibility), null, _culture);
+            var result = converter.Convert(string.Empty, typeof(Visibility), parameter: null, _culture);
 
             // Assert
             Assert.Equal(Visibility.Visible, result);
@@ -32,7 +32,7 @@ namespace ClipSage.Tests
             var converter = new StringToVisibilityConverter();
 
             // Act
-            var result = converter.Convert(null, typeof(Visibility), null, _culture);
+            var result = converter.Convert(null, typeof(Visibility), parameter: null, _culture);
 
             // Assert
             Assert.Equal(Visibility.Visible, result);
@@ -45,7 +45,7 @@ namespace ClipSage.Tests
             var converter = new StringToVisibilityConverter();
 
             // Act
-            var result = converter.Convert("Test", typeof(Visibility), null, _culture);
+            var result = converter.Convert("Test", typeof(Visibility), parameter: null, _culture);
 
             // Assert
             Assert.Equal(Visibility.Collapsed, result);
@@ -58,7 +58,7 @@ namespace ClipSage.Tests
             var converter = new NullToBooleanConverter();
 
             // Act
-            var result = converter.Convert(null, typeof(bool), null, _culture);
+            var result = converter.Convert(null, typeof(bool), parameter: null, _culture);
 
             // Assert
             Assert.False((bool)result);
@@ -71,7 +71,7 @@ namespace ClipSage.Tests
             var converter = new NullToBooleanConverter();
 
             // Act
-            var result = converter.Convert("Test", typeof(bool), null, _culture);
+            var result = converter.Convert("Test", typeof(bool), parameter: null, _culture);
 
             // Assert
             Assert.True((bool)result);
@@ -84,7 +84,7 @@ namespace ClipSage.Tests
             var converter = new DataTypeToColorConverter();
 
             // Act
-            var result = converter.Convert(ClipboardDataType.Text, typeof(Brush), null, _culture);
+            var result = converter.Convert(ClipboardDataType.Text, typeof(Brush), parameter: null, _culture);
 
             // Assert
             Assert.NotNull(result);
@@ -98,7 +98,7 @@ namespace ClipSage.Tests
             var converter = new DataTypeToColorConverter();
 
             // Act
-            var result = converter.Convert(ClipboardDataType.Image, typeof(Brush), null, _culture);
+            var result = converter.Convert(ClipboardDataType.Image, typeof(Brush), parameter: null, _culture);
 
             // Assert
             Assert.NotNull(result);
@@ -112,7 +112,7 @@ namespace ClipSage.Tests
             var converter = new DataTypeToColorConverter();
 
             // Act
-            var result = converter.Convert(ClipboardDataType.FilePaths, typeof(Brush), null, _culture);
+            var result = converter.Convert(ClipboardDataType.FilePaths, typeof(Brush), parameter: null, _culture);
 
             // Assert
             Assert.NotNull(result);
@@ -126,7 +126,7 @@ namespace ClipSage.Tests
             var converter = new DataTypeToIconConverter();
 
             // Act
-            var result = converter.Convert(ClipboardDataType.Text, typeof(DrawingImage), null, _culture);
+            var result = converter.Convert(ClipboardDataType.Text, typeof(DrawingImage), parameter: null, _culture);
 
             // Assert
             Assert.NotNull(result);
@@ -140,7 +140,7 @@ namespace ClipSage.Tests
             var converter = new DataTypeToIconConverter();
 
             // Act
-            var result = converter.Convert(ClipboardDataType.Image, typeof(DrawingImage), null, _culture);
+            var result = converter.Convert(ClipboardDataType.Image, typeof(DrawingImage), parameter: null, _culture);
 
             // Assert
             Assert.NotNull(result);
@@ -154,7 +154,7 @@ namespace ClipSage.Tests
             var converter = new DataTypeToIconConverter();
 
             // Act
-            var result = converter.Convert(ClipboardDataType.FilePaths, typeof(DrawingImage), null, _culture);
+            var result = converter.Convert(ClipboardDataType.FilePaths, typeof(DrawingImage), parameter: null, _culture);
 
             // Assert
             Assert.NotNull(result);
@@ -167,7 +167,7 @@ namespace ClipSage.Tests
             var converter = new DataTypeToLabelConverter();
 
             // Act
-            var result = converter.Convert(ClipboardDataType.Text, typeof(string), null, _culture);
+            var result = converter.Convert(ClipboardDataType.Text, typeof(string), parameter: null, _culture);
 
             // Assert
             Assert.NotNull(result);
@@ -182,7 +182,7 @@ namespace ClipSage.Tests
             var converter = new DataTypeToLabelConverter();
 
             // Act
-            var result = converter.Convert(ClipboardDataType.Image, typeof(string), null, _culture);
+            var result = converter.Convert(ClipboardDataType.Image, typeof(string), parameter: null, _culture);
 
             // Assert
             Assert.NotNull(result);
@@ -197,7 +197,7 @@ namespace ClipSage.Tests
             var converter = new DataTypeToLabelConverter();
 
             // Act
-            var result = converter.Convert(ClipboardDataType.FilePaths, typeof(string), null, _culture);
+            var result = converter.Convert(ClipboardDataType.FilePaths, typeof(string), parameter: null, _culture);
 
             // Assert
             Assert.NotNull(result);

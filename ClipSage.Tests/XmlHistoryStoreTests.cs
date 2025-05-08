@@ -159,11 +159,17 @@ namespace ClipSage.Tests
                 DataType = ClipboardDataType.Text,
                 PlainText = "Test text" // Same text as entry1
             };
-            
+
             // Bypass duplicate detection to add the duplicate
             var privateStore = _store.GetType().GetField("_inMemoryHistory", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var inMemoryHistory = (System.Collections.Generic.List<ClipboardEntry>)privateStore.GetValue(_store);
-            inMemoryHistory.Add(entry2);
+            if (privateStore != null)
+            {
+                var inMemoryHistory = (System.Collections.Generic.List<ClipboardEntry>?)privateStore.GetValue(_store);
+                if (inMemoryHistory != null)
+                {
+                    inMemoryHistory.Add(entry2);
+                }
+            }
 
             // Act
             int removedCount = await _store.CleanupDuplicatesAsync();
