@@ -27,7 +27,7 @@ if ([string]::IsNullOrEmpty($Version)) {
     
     # If still no version, exit
     if ([string]::IsNullOrEmpty($Version)) {
-        Write-Host "Could not determine version. Please provide it as a parameter or ensure Directory.Build.props exists." -ForegroundColor Red
+        Write-Host "Could not determine version. Please provide it as a parameter (e.g., -Version `"1.0.32`") or ensure <Version> element exists in Directory.Build.props." -ForegroundColor Red
         exit 1
     }
 }

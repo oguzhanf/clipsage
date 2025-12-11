@@ -35,7 +35,9 @@ The version number is defined in `/Directory.Build.props`:
 2. .NET 9 SDK installed
 3. PowerShell 5.1 or later
 4. GitHub CLI (`gh`) installed and authenticated
-   - Install: `winget install GitHub.cli`
+   - Install with winget: `winget install GitHub.cli`
+   - Or with chocolatey: `choco install gh`
+   - Or download from: https://cli.github.com/
    - Login: `gh auth login`
 
 ### Steps

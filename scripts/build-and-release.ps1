@@ -62,16 +62,42 @@ $zipPath = Join-Path $rootDir "bin\ClipSage-$Version.zip"
 $exePath = Join-Path $rootDir "bin\ClipSage-$Version.exe"
 $publishDir = Join-Path $rootDir "bin\ClipSage-$Version"
 
-# Check if we have the published directory with the main executable
-$mainExePath = Join-Path $publishDir "ClipSage.App.exe"
-if (Test-Path $mainExePath) {
-    Write-Host "  Copying executable for release..." -ForegroundColor Cyan
-    Copy-Item -Path $mainExePath -Destination $exePath -Force
-    Write-Host "  Created: $exePath" -ForegroundColor Green
+# Check if we have the published directory and find the main executable
+if (Test-Path $publishDir) {
+    Write-Host "  Looking for main executable in publish directory..." -ForegroundColor Cyan
+    
+    # Try common names for the main executable
+    $possibleExeNames = @("ClipSage.App.exe", "ClipSage.exe", "ClipperMVP.exe")
+    $mainExePath = $null
+    
+    foreach ($exeName in $possibleExeNames) {
+        $testPath = Join-Path $publishDir $exeName
+        if (Test-Path $testPath) {
+            $mainExePath = $testPath
+            Write-Host "  Found main executable: $exeName" -ForegroundColor Green
+            break
+        }
+    }
+    
+    # If we couldn't find it by name, look for the first .exe file
+    if (-not $mainExePath) {
+        $exeFiles = Get-ChildItem -Path $publishDir -Filter "*.exe" | Select-Object -First 1
+        if ($exeFiles) {
+            $mainExePath = $exeFiles.FullName
+            Write-Host "  Found executable: $($exeFiles.Name)" -ForegroundColor Green
+        }
+    }
+    
+    if ($mainExePath -and (Test-Path $mainExePath)) {
+        Write-Host "  Copying executable for release..." -ForegroundColor Cyan
+        Copy-Item -Path $mainExePath -Destination $exePath -Force
+        Write-Host "  Created: $exePath" -ForegroundColor Green
+    }
 }
 
 if (-not (Test-Path $exePath)) {
     Write-Host "ERROR: Could not create release executable!" -ForegroundColor Red
+    Write-Host "Expected publish directory: $publishDir" -ForegroundColor Yellow
     exit 1
 }
 Write-Host ""
