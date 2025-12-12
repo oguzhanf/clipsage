@@ -29,18 +29,11 @@ The version number is defined in `/Directory.Build.props`:
 
 ## Automated Build and Release Process
 
-### Prerequisites
+### Method 1: GitHub Actions (Recommended - No Windows Machine Required!)
 
-1. Windows machine (required for WPF/Windows-specific builds)
-2. .NET 9 SDK installed
-3. PowerShell 5.1 or later
-4. GitHub CLI (`gh`) installed and authenticated
-   - Install with winget: `winget install GitHub.cli`
-   - Or with chocolatey: `choco install gh`
-   - Or download from: https://cli.github.com/
-   - Login: `gh auth login`
+This is the easiest and recommended method as it doesn't require any local setup.
 
-### Steps
+#### Steps:
 
 1. **Update the Version Number**
    
@@ -51,6 +44,68 @@ The version number is defined in `/Directory.Build.props`:
    <FileVersion>1.0.32.0</FileVersion>
    <InformationalVersion>1.0.32</InformationalVersion>
    ```
+
+2. **Commit and Push the Version Change**
+   
+   ```bash
+   git add Directory.Build.props
+   git commit -m "Bump version to 1.0.32"
+   git push
+   ```
+
+3. **Trigger the Build and Release Workflow**
+   
+   Go to the repository on GitHub:
+   1. Click on the **Actions** tab
+   2. Select **Build and Release** workflow from the left sidebar
+   3. Click **Run workflow** button (top right)
+   4. Ensure "Create a GitHub release" is checked
+   5. Click the green **Run workflow** button
+   
+   The workflow will:
+   - Build the application on GitHub's Windows runners
+   - Run tests
+   - Create portable executable
+   - Create ZIP archive
+   - Create a GitHub release with both files
+
+4. **Verify the Release**
+   
+   - Go to https://github.com/oguzhanf/clipsage/releases
+   - The new release should appear with your version
+   - Download and test the executable
+
+#### Alternative: Tag-based Release
+
+Instead of manually triggering the workflow, you can create a tag:
+
+```bash
+git tag v1.0.32
+git push origin v1.0.32
+```
+
+This will automatically trigger the Build and Release workflow.
+
+### Method 2: Local Build (Windows Machine Required)
+
+If you prefer to build locally or need to test before releasing:
+
+#### Prerequisites
+
+1. Windows machine (required for WPF/Windows-specific builds)
+2. .NET 9 SDK installed
+3. PowerShell 5.1 or later
+4. GitHub CLI (`gh`) installed and authenticated (optional, for automatic release creation)
+   - Install with winget: `winget install GitHub.cli`
+   - Or with chocolatey: `choco install gh`
+   - Or download from: https://cli.github.com/
+   - Login: `gh auth login`
+
+#### Steps
+
+1. **Update the Version Number**
+   
+   Edit `Directory.Build.props` and increment the version number (same as Method 1)
 
 2. **Commit the Version Change**
    
@@ -173,3 +228,40 @@ After creating a release:
 4. **Keep versions synchronized**
    - The version in code should match the release tag
    - Example: Code has `1.0.32` → Release is `v1.0.32` → Executable is `ClipSage-1.0.32.exe`
+
+## GitHub Actions Workflows
+
+The repository includes two GitHub Actions workflows:
+
+### 1. Build and Release (`.github/workflows/build-and-release.yml`)
+
+**Purpose:** Build the application and create a GitHub release
+
+**Triggers:**
+- Manual workflow dispatch (recommended)
+- Push to tags matching `v*` pattern
+
+**What it does:**
+1. Builds ClipSage on Windows runners
+2. Creates portable executable
+3. Creates ZIP archive
+4. Publishes GitHub release with artifacts
+
+**How to use:**
+- Go to Actions tab → Build and Release → Run workflow
+- Or push a tag: `git tag v1.0.32 && git push origin v1.0.32`
+
+### 2. Build (`.github/workflows/build.yml`)
+
+**Purpose:** Continuous integration - verify builds work
+
+**Triggers:**
+- Push to main branches
+- Pull requests
+
+**What it does:**
+1. Builds ClipSage
+2. Runs tests
+3. Uploads build artifacts (7-day retention)
+
+This workflow helps ensure code changes don't break the build before merging.

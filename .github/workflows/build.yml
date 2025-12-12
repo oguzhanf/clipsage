@@ -1,0 +1,57 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - 'copilot/**'
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+    
+    - name: Get version from Directory.Build.props
+      id: get_version
+      shell: pwsh
+      run: |
+        $content = Get-Content "Directory.Build.props"
+        $versionLine = $content | Where-Object { $_ -match '<Version>(.*)</Version>' }
+        $version = ($versionLine -replace '<Version>(.*)</Version>', '$1').Trim()
+        echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+        echo "Version: $version"
+    
+    - name: Restore dependencies
+      run: dotnet restore ClipSage.sln
+    
+    - name: Build solution
+      run: dotnet build ClipSage.sln -c Release --no-restore
+    
+    - name: Run tests
+      run: dotnet test ClipSage.sln -c Release --no-build --verbosity normal
+    
+    - name: Publish application
+      run: |
+        dotnet publish ClipSage.App\ClipSage.App.csproj -c Release -r win-x64 --self-contained false -o bin\ClipSage-${{ steps.get_version.outputs.VERSION }}
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ClipSage-Build-${{ github.sha }}
+        path: bin/ClipSage-${{ steps.get_version.outputs.VERSION }}/**/*
+        retention-days: 7

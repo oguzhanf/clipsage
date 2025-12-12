@@ -88,6 +88,32 @@ ClipSage is a fully portable application:
 - `ClipSage.Core`: Core functionality and business logic
 - `ClipSage.Tests`: Unit tests
 
+### Creating a Release
+
+The project includes automated GitHub Actions workflows for building and releasing:
+
+**Option 1: Manual Trigger (Recommended)**
+1. Go to the [Actions tab](../../actions/workflows/build-and-release.yml)
+2. Click "Run workflow"
+3. Ensure "Create a GitHub release" is checked
+4. Click "Run workflow"
+5. The workflow will build the application and create a release with artifacts
+
+**Option 2: Tag-based Release**
+1. Ensure the version in `Directory.Build.props` is updated
+2. Create and push a tag:
+   ```bash
+   git tag v1.0.32
+   git push origin v1.0.32
+   ```
+3. The workflow will automatically build and create a release
+
+**Option 3: Local Build (Windows only)**
+```powershell
+# Build and create release
+.\scripts\build-and-release.ps1
+```
+
 ## 🤝 Contributing
 
 Contributions are welcome! Feel free to:
