@@ -5,23 +5,23 @@
   <h3>Free and Open Source Clipboard History & Snippet Manager for Windows</h3>
 </div>
 
-## 📋 Overview
+##  Overview
 
 ClipSage is a powerful, free, and open-source clipboard management tool designed for Windows users who need more than just basic copy-paste functionality. It provides an intelligent way to track, organize, and reuse your clipboard history while offering advanced snippet management capabilities.
 
-## ✨ Key Features
+##  Key Features
 
-- **📚 Comprehensive Clipboard History**: Automatically saves everything you copy, allowing you to access your clipboard history anytime.
-- **🔍 Smart Search**: Quickly find past clips with powerful search functionality.
-- **📝 Multiple Content Types**: Support for text, images, and file paths.
-- **⌨️ Keyboard Shortcuts**: Access all functionality without taking your hands off the keyboard (Ctrl+Shift+V).
-- **🎨 Format Preservation**: Maintains formatting for rich text, code, images, and more.
-- **🔒 Secure Local Storage**: All your clipboard data stays on your computer.
-- **🖥️ Metro UI**: Modern Windows interface with clean, minimalist design.
-- **💾 Portable Mode**: Run from any location without installation.
-- **🔄 Auto-Updates**: Stay up-to-date with the latest features and improvements.
+- ** Comprehensive Clipboard History**: Automatically saves everything you copy, allowing you to access your clipboard history anytime.
+- ** Smart Search**: Quickly find past clips with powerful search functionality.
+- ** Multiple Content Types**: Support for text, images, and file paths.
+- ** Keyboard Shortcuts**: Access all functionality without taking your hands off the keyboard (Ctrl+Shift+V).
+- ** Format Preservation**: Maintains formatting for rich text, code, images, and more.
+- ** Secure Local Storage**: All your clipboard data stays on your computer.
+- ** Metro UI**: Modern Windows interface with clean, minimalist design.
+- ** Portable Mode**: Run from any location without installation.
+- ** Auto-Updates**: Stay up-to-date with the latest features and improvements.
 
-## 🚀 Getting Started
+##  Getting Started
 
 1. Download the latest release from the [Releases page](https://github.com/oguzhanf/clipsage/releases)
 2. Run the downloaded `ClipSage-x.x.xx.exe` file
@@ -29,7 +29,7 @@ ClipSage is a powerful, free, and open-source clipboard management tool designed
 4. ClipSage will appear in your system tray
 5. Press `Ctrl+Shift+V` to access your clipboard history
 
-## 💻 Usage
+##  Usage
 
 ### Basic Operations
 
@@ -47,7 +47,7 @@ Right-click the ClipSage icon in the system tray to:
 - Check for updates
 - Exit the application
 
-## 📱 Portable Mode
+##  Portable Mode
 
 ClipSage is a fully portable application:
 
@@ -56,7 +56,7 @@ ClipSage is a fully portable application:
 - Create shortcuts during first run or manually later
 - No installation required
 
-## 🛠️ Building from Source
+## Building from Source
 
 ### Prerequisites
 
@@ -88,18 +88,13 @@ ClipSage is a fully portable application:
 - `ClipSage.Core`: Core functionality and business logic
 - `ClipSage.Tests`: Unit tests
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Feel free to:
 - Report bugs
 - Suggest features
 - Submit pull requests
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Thanks to all contributors who have helped make ClipSage better
-- Special thanks to the .NET and WPF communities for their excellent tools and resources
