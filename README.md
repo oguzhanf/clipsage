@@ -11,15 +11,15 @@ ClipSage is a powerful, free, and open-source clipboard management tool designed
 
 ##  Key Features
 
-- ** Comprehensive Clipboard History**: Automatically saves everything you copy, allowing you to access your clipboard history anytime.
-- ** Smart Search**: Quickly find past clips with powerful search functionality.
-- ** Multiple Content Types**: Support for text, images, and file paths.
-- ** Keyboard Shortcuts**: Access all functionality without taking your hands off the keyboard (Ctrl+Shift+V).
-- ** Format Preservation**: Maintains formatting for rich text, code, images, and more.
-- ** Secure Local Storage**: All your clipboard data stays on your computer.
-- ** Metro UI**: Modern Windows interface with clean, minimalist design.
-- ** Portable Mode**: Run from any location without installation.
-- ** Auto-Updates**: Stay up-to-date with the latest features and improvements.
+- Comprehensive Clipboard History**: Automatically saves everything you copy, allowing you to access your clipboard history anytime.
+- Smart Search**: Quickly find past clips with powerful search functionality.
+- Multiple Content Types**: Support for text, images, and file paths.
+- Keyboard Shortcuts**: Access all functionality without taking your hands off the keyboard (Ctrl+Shift+V).
+- Format Preservation**: Maintains formatting for rich text, code, images, and more.
+- Secure Local Storage**: All your clipboard data stays on your computer.
+- Metro UI**: Modern Windows interface with clean, minimalist design.
+- Portable Mode**: Run from any location without installation.
+- Auto-Updates**: Stay up-to-date with the latest features and improvements.
 
 ##  Getting Started
 
