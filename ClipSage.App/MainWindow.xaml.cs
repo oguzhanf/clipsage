@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
@@ -32,7 +32,7 @@ namespace ClipSage.App
 
             // Update window title and status bar to include version
             var version = UpdateChecker.Instance.CurrentVersion;
-            Title = $"ClipSage v{version} - Advanced Clipboard Manager";
+            Title = $"clipsage v{version}";
             VersionText.Text = $"v{version}";
 
             // Initialize _closeToTray from settings
@@ -349,6 +349,32 @@ namespace ClipSage.App
         {
             // Set flag to force close and exit the application
             _forceClose = true;
+            Close();
+        }
+
+        // ---- chromeless window buttons ----
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (WindowState == WindowState.Maximized)
+            {
+                WindowState = WindowState.Normal;
+                MaximizeButton.Content = ""; // ChromeMaximize
+            }
+            else
+            {
+                WindowState = WindowState.Maximized;
+                MaximizeButton.Content = ""; // ChromeRestore
+            }
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
             Close();
         }
 

@@ -1,4 +1,4 @@
-﻿<Application x:Class="ClipSage.App.App"
+<Application x:Class="ClipSage.App.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:ClipSage.App"
@@ -7,14 +7,19 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- Material Design resource dictionaries -->
-                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Blue" SecondaryColor="LightBlue" />
+                <!--
+                  MaterialDesign stays loaded (the existing tray icon and a few assists rely
+                  on its dynamic resources). Switched to Dark + orange so any unstyled control
+                  blends with the Zune canvas. Zune.xaml is merged LAST so its keys win.
+                -->
+                <materialDesign:BundledTheme BaseTheme="Dark" PrimaryColor="DeepOrange" SecondaryColor="DeepOrange" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
 
                 <!-- Custom icons -->
                 <ResourceDictionary Source="Resources/Icons.xaml" />
 
-
+                <!-- Zune design system — must come after Material so its brushes/styles win. -->
+                <ResourceDictionary Source="Themes/Zune.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Custom converters -->

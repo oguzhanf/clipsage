@@ -4,36 +4,37 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClipSage.App"
-        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="Progress"
-        Height="150" Width="400"
+        Title="clipsage / progress"
+        Height="180" Width="440"
         WindowStartupLocation="CenterOwner"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        TextElement.FontWeight="Regular"
-        TextOptions.TextFormattingMode="Ideal"
-        TextOptions.TextRenderingMode="Auto"
-        Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{materialDesign:MaterialDesignFont}"
-        materialDesign:ElevationAssist.Elevation="Dp3"
         ResizeMode="NoResize"
-        ShowInTaskbar="False">
+        ShowInTaskbar="False"
+        Style="{StaticResource ZuneWindow}">
 
-    <Grid Margin="20">
+    <Grid Margin="32,24,32,24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock x:Name="MessageTextBlock" Grid.Row="0" Text="Please wait..." Margin="0,0,0,16"
-                   FontWeight="Medium" FontSize="14"/>
-        <ProgressBar x:Name="ProgressBar" Grid.Row="1" Height="20" Minimum="0" Maximum="1" Value="0"
-                     Style="{StaticResource MaterialDesignLinearProgressBar}"/>
-        <Button x:Name="CancelButton" Grid.Row="2" Content="Cancel" Width="100" Height="36"
-                HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="CancelButton_Click"
-                Style="{StaticResource MaterialDesignOutlinedButton}"
-                materialDesign:ButtonAssist.CornerRadius="4"
-                materialDesign:ShadowAssist.ShadowDepth="Depth1"/>
+        <TextBlock x:Name="MessageTextBlock" Grid.Row="0"
+                   Text="please wait..."
+                   Foreground="{StaticResource ZuneForeground}"
+                   FontFamily="Segoe UI Light" FontWeight="Light" FontSize="22"
+                   Margin="0,0,0,16"/>
+
+        <ProgressBar x:Name="ProgressBar" Grid.Row="1"
+                     Style="{StaticResource ZuneProgressBar}"
+                     Minimum="0" Maximum="1" Value="0"
+                     Margin="0,0,0,16"/>
+
+        <Button x:Name="CancelButton" Grid.Row="2"
+                Style="{StaticResource ZuneButton}"
+                Content="cancel"
+                Padding="22,8"
+                HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                Click="CancelButton_Click"/>
     </Grid>
 </Window>

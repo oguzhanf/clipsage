@@ -4,113 +4,117 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClipSage.App"
-        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="ClipSage - Caching Folder Setup"
-        MinHeight="450" MinWidth="550"
-        SizeToContent="WidthAndHeight"
+        Title="clipsage / caching folder setup"
+        MinHeight="500" MinWidth="600"
+        SizeToContent="Height" Width="640"
         WindowStartupLocation="CenterScreen"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        TextElement.FontWeight="Regular"
-        TextOptions.TextFormattingMode="Ideal"
-        TextOptions.TextRenderingMode="Auto"
-        Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{materialDesign:MaterialDesignFont}"
-        materialDesign:ElevationAssist.Elevation="Dp3">
+        Style="{StaticResource ZuneWindow}">
 
-    <Grid Margin="25">
+    <Grid Margin="48,32,48,32">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*" MinHeight="100"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <TextBlock Grid.Row="0" Text="Caching Folder Setup" FontSize="26" FontWeight="Bold" Margin="0,0,0,20"
-                   Foreground="{DynamicResource PrimaryHueMidBrush}"
-                   materialDesign:ShadowAssist.ShadowDepth="Depth1"/>
+        <!-- Title — bleed off right edge. -->
+        <TextBlock Grid.Row="0"
+                   FontFamily="Segoe UI Light" FontWeight="Light"
+                   FontSize="64"
+                   Foreground="{StaticResource ZuneForeground}"
+                   Text="caching folder"
+                   Margin="0,0,-200,24"/>
 
-        <!-- Welcome Text -->
-        <TextBlock Grid.Row="1" TextWrapping="Wrap" Margin="0,0,0,20" LineHeight="24">
-            <Run FontWeight="Bold" FontSize="16">Welcome to ClipSage!</Run>
-            <LineBreak/>
-            <LineBreak/>
-            To enable clipboard data syncing between your devices, please select a folder where ClipSage will store its cache files.
-            <LineBreak/>
-            <LineBreak/>
-            <Run FontWeight="Bold">Recommendation:</Run> Choose a folder within OneDrive, Google Drive, Dropbox, or another cloud storage service to automatically sync your clipboard data across multiple computers.
-            <LineBreak/>
-            <LineBreak/>
-            If you've used ClipSage before, you can select your existing cache folder and your clipboard history will be preserved.
-        </TextBlock>
+        <!-- Welcome text. -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,24">
+            <TextBlock Style="{StaticResource ZuneEyebrow}"
+                       Text="WELCOME TO CLIPSAGE"
+                       Foreground="{StaticResource ZuneAccent}"
+                       Margin="0,0,0,12"/>
+            <TextBlock Style="{StaticResource ZuneBody}"
+                       FontSize="14"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,12">
+                to enable clipboard data syncing between your devices, select a folder where clipsage will store its cache files.
+            </TextBlock>
+            <TextBlock Style="{StaticResource ZuneBody}"
+                       FontSize="14"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,12">
+                <Run Foreground="{StaticResource ZuneAccent}" FontWeight="SemiBold">recommendation —</Run>
+                <Run>choose a folder in onedrive, google drive, dropbox, or another cloud storage service to sync clipboard data across multiple computers.</Run>
+            </TextBlock>
+            <TextBlock Style="{StaticResource ZuneBody}"
+                       FontSize="14"
+                       TextWrapping="Wrap">
+                if you've used clipsage before, select your existing cache folder and your clipboard history will be preserved.
+            </TextBlock>
+        </StackPanel>
 
-        <!-- Folder Label -->
-        <TextBlock Grid.Row="2" Text="Caching Folder:" FontWeight="SemiBold" Margin="0,10,0,5"/>
+        <!-- Folder label. -->
+        <TextBlock Grid.Row="2"
+                   Style="{StaticResource ZuneEyebrow}"
+                   Text="CACHING FOLDER"
+                   Margin="0,0,0,8"/>
 
-        <!-- Folder Selection -->
-        <Grid Grid.Row="3" Margin="0,0,0,15">
+        <!-- Folder selection. -->
+        <Grid Grid.Row="3" Margin="0,0,0,16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBox x:Name="CachingFolderTextBox" Grid.Column="0" Margin="0,0,16,0"
-                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                     materialDesign:HintAssist.Hint="Enter folder path"
-                     materialDesign:TextFieldAssist.HasClearButton="True"
-                     materialDesign:ShadowAssist.ShadowDepth="Depth1"
+            <TextBox x:Name="CachingFolderTextBox" Grid.Column="0"
+                     Style="{StaticResource ZuneTextBox}"
+                     FontSize="14" Padding="14,8"
+                     Margin="0,0,12,0"
                      TextChanged="CachingFolderTextBox_TextChanged"/>
 
-            <Button Grid.Column="1" Content="Browse..." Click="BrowseButton_Click"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
-                    materialDesign:ButtonAssist.CornerRadius="4"
-                    materialDesign:ShadowAssist.ShadowDepth="Depth2"
-                    Width="100" Height="40" FontWeight="Medium"/>
+            <Button Grid.Column="1"
+                    Style="{StaticResource ZuneButton}"
+                    Content="browse"
+                    Padding="22,10"
+                    Click="BrowseButton_Click"/>
         </Grid>
 
-        <!-- Warning Message -->
-        <materialDesign:Card Grid.Row="4" Background="#FFFDE7" Margin="0,10,0,0"
-                             materialDesign:ElevationAssist.Elevation="Dp1"
-                             VerticalAlignment="Top">
-            <Grid Margin="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+        <!-- Warning. -->
+        <Border Grid.Row="4"
+                Background="{StaticResource ZuneSurface2}"
+                BorderBrush="{StaticResource ZuneAccent}"
+                BorderThickness="2,0,0,0"
+                Padding="20,16"
+                Margin="0,0,0,24">
+            <TextBlock Style="{StaticResource ZuneBody}"
+                       FontSize="13"
+                       TextWrapping="Wrap">
+                <Run Foreground="{StaticResource ZuneAccent}" FontWeight="SemiBold">note —</Run>
+                <Run>a caching folder is required to use clipsage. if you select a folder with existing cache data, it will be reused. the application can't start without one.</Run>
+            </TextBlock>
+        </Border>
 
-                <materialDesign:PackIcon Kind="AlertCircle" Grid.Column="0" Width="24" Height="24"
-                                         Foreground="#FF8F00" VerticalAlignment="Top" Margin="0,0,16,0"/>
-
-                <TextBlock Grid.Column="1" TextWrapping="Wrap" Foreground="#D32F2F"
-                           FontWeight="Medium" FontSize="13">
-                    Note: A caching folder is required to use ClipSage. If you select a folder with existing ClipSage cache data, it will be reused. The application cannot start without a valid caching folder.
-                </TextBlock>
-            </Grid>
-        </materialDesign:Card>
-
-        <!-- Buttons -->
-        <Grid Grid.Row="5" Margin="0,20,0,10">
+        <!-- Buttons. -->
+        <Grid Grid.Row="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="1" Content="Help" Width="100" Height="40" Margin="0,0,16,0"
-                    Click="SkipButton_Click"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                    materialDesign:ButtonAssist.CornerRadius="4"
-                    materialDesign:ShadowAssist.ShadowDepth="Depth1"/>
-
-            <Button Grid.Column="2" Content="Continue" Width="120" Height="40"
-                    Click="SaveButton_Click"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
-                    materialDesign:ButtonAssist.CornerRadius="4"
-                    materialDesign:ShadowAssist.ShadowDepth="Depth3"
-                    Background="{DynamicResource PrimaryHueMidBrush}" Foreground="White"/>
+            <Button Grid.Column="1"
+                    Style="{StaticResource ZuneButton}"
+                    Content="help"
+                    Padding="22,10"
+                    Margin="0,0,12,0"
+                    Click="SkipButton_Click"/>
+            <Button Grid.Column="2"
+                    Style="{StaticResource ZuneButtonPrimary}"
+                    Content="continue"
+                    Padding="22,10"
+                    Click="SaveButton_Click"/>
         </Grid>
     </Grid>
 </Window>

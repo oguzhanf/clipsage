@@ -7,63 +7,146 @@ using System.Windows.Forms;
 
 namespace ClipSage.Core
 {
+    /// <summary>
+    /// System-wide clipboard monitor.
+    ///
+    /// Design notes (read before editing — these are non-obvious):
+    ///
+    /// - We register a Vista+ AddClipboardFormatListener on a hidden message-only
+    ///   form running on its own STA thread. The chain-style WM_DRAWCLIPBOARD model
+    ///   is intentionally avoided (broken-chain risk).
+    ///
+    /// - Every <see cref="GetClipboardEntry"/> takes a SINGLE clipboard snapshot via
+    ///   Clipboard.GetDataObject(). Earlier versions made 3–5 separate OpenClipboard
+    ///   calls per event (one per Contains* and Get* call), which serialized cross-app
+    ///   clipboard access and caused other apps' paste to fail under contention.
+    ///
+    /// - <see cref="MarkSelfWrite"/> is the way an in-app "copy" should announce its
+    ///   own write. The next WM_CLIPBOARDUPDATE within <see cref="SelfWriteGraceMs"/>
+    ///   is silently dropped. This replaces the previous Stop/Start-on-Copy dance,
+    ///   which tore down and recreated the entire listener thread for every click.
+    ///
+    /// - Bursts of WM_CLIPBOARDUPDATE within <see cref="DebounceMs"/> are coalesced:
+    ///   only the final state is read. This both reduces clipboard contention and
+    ///   avoids capturing intermediate states from clipboard-chain apps.
+    /// </summary>
     public class ClipboardService
     {
+        // How long after a self-write to ignore incoming updates.
+        private const int SelfWriteGraceMs = 700;
+
+        // Coalesce updates that arrive within this window.
+        private const int DebounceMs = 90;
+
         private static readonly Lazy<ClipboardService> _instance = new(() => new ClipboardService());
         public static ClipboardService Instance => _instance.Value;
 
         public event EventHandler<ClipboardEntry>? ClipboardChanged;
 
+        private readonly object _lifecycleLock = new();
         private ClipboardNotificationForm? _notificationForm;
         private Thread? _clipboardThread;
-        private bool _isMonitoring = false;
+        private volatile bool _isMonitoring;
+        private long _selfWriteUtcTicks;
 
         public bool IsMonitoring => _isMonitoring;
 
         private ClipboardService()
         {
-            // Start monitoring by default
             StartMonitoring();
         }
 
         public void StartMonitoring()
         {
-            if (_isMonitoring)
-                return;
+            lock (_lifecycleLock)
+            {
+                if (_isMonitoring)
+                    return;
 
-            _clipboardThread = new Thread(() => {
-                _notificationForm = new ClipboardNotificationForm(this);
-                Application.Run(_notificationForm);
-            });
-            _clipboardThread.SetApartmentState(ApartmentState.STA);
-            _clipboardThread.IsBackground = true;
-            _clipboardThread.Start();
+                var ready = new ManualResetEventSlim(false);
+                var thread = new Thread(() =>
+                {
+                    var form = new ClipboardNotificationForm(this);
+                    _notificationForm = form;
+                    ready.Set();
+                    Application.Run(form);
+                });
+                thread.SetApartmentState(ApartmentState.STA);
+                thread.IsBackground = true;
+                thread.Name = "ClipSage.ClipboardListener";
+                thread.Start();
 
-            _isMonitoring = true;
+                // Block until the form's handle exists; otherwise a concurrent
+                // StopMonitoring could try to BeginInvoke on a still-null form.
+                ready.Wait();
+
+                _clipboardThread = thread;
+                _isMonitoring = true;
+            }
         }
 
         public void StopMonitoring()
         {
-            if (!_isMonitoring)
-                return;
+            Thread? threadToJoin;
+            ClipboardNotificationForm? form;
 
-            if (_notificationForm != null)
+            lock (_lifecycleLock)
             {
-                _notificationForm.BeginInvoke(new Action(() => {
-                    _notificationForm.Close();
-                }));
+                if (!_isMonitoring)
+                    return;
+
+                form = _notificationForm;
+                threadToJoin = _clipboardThread;
                 _notificationForm = null;
+                _clipboardThread = null;
+                _isMonitoring = false;
             }
 
-            _isMonitoring = false;
+            if (form != null && !form.IsDisposed)
+            {
+                try
+                {
+                    form.BeginInvoke(new Action(() =>
+                    {
+                        try { form.Close(); } catch { /* already gone */ }
+                    }));
+                }
+                catch { /* message loop already torn down */ }
+            }
+
+            // Wait for Application.Run to return so a follow-up StartMonitoring
+            // doesn't race against the previous thread's listener registration.
+            threadToJoin?.Join(500);
         }
 
         public void ToggleMonitoring()
         {
-            if (_isMonitoring)
-                StopMonitoring();
-            else
-                StartMonitoring();
+            if (_isMonitoring) StopMonitoring();
+            else StartMonitoring();
+        }
+
+        /// <summary>
+        /// Call this immediately before writing to the clipboard from inside the app
+        /// (e.g., the "copy" button). The next clipboard-update notification that
+        /// arrives within ~700 ms will be recognized as our own write and dropped,
+        /// so monitoring doesn't need to be stopped.
+        /// </summary>
+        public void MarkSelfWrite()
+        {
+            Interlocked.Exchange(ref _selfWriteUtcTicks, DateTime.UtcNow.Ticks);
+        }
+
+        private bool ConsumeSelfWriteIfFresh()
+        {
+            var stamp = Interlocked.Read(ref _selfWriteUtcTicks);
+            if (stamp == 0) return false;
+
+            var ageMs = (DateTime.UtcNow - new DateTime(stamp, DateTimeKind.Utc)).TotalMilliseconds;
+            if (ageMs < 0 || ageMs > SelfWriteGraceMs) return false;
+
+            // Clear so subsequent external changes aren't accidentally muted.
+            Interlocked.Exchange(ref _selfWriteUtcTicks, 0);
+            return true;
         }
 
         public void OnClipboardChanged(ClipboardEntry entry)
@@ -71,215 +154,211 @@ namespace ClipSage.Core
             ClipboardChanged?.Invoke(this, entry);
         }
 
-        private class ClipboardNotificationForm : Form
+        private sealed class ClipboardNotificationForm : Form
         {
+            private const int WM_CLIPBOARDUPDATE = 0x031D;
+
             private readonly ClipboardService _service;
+            private readonly System.Windows.Forms.Timer _debounceTimer;
 
             public ClipboardNotificationForm(ClipboardService service)
             {
                 _service = service;
 
-                // Make the form invisible and ensure it doesn't show in taskbar or alt-tab
-                this.ShowInTaskbar = false;
-                this.FormBorderStyle = FormBorderStyle.None;
-                this.Opacity = 0;
-                this.Size = new Size(0, 0);
-                this.WindowState = FormWindowState.Minimized;
-
-                // Set the form to be a tool window which further reduces its visibility
-                this.ShowIcon = false;
-                this.StartPosition = FormStartPosition.Manual;
-                this.Location = new Point(-2000, -2000); // Position off-screen
-
-                // Set window style to be a tool window
-                // This prevents it from showing up in the alt+tab list
-                SetToolWindow();
+                // Hidden message-only form: invisible, no taskbar, no alt-tab.
+                // ShowInTaskbar=false already excludes us from the taskbar; the
+                // legacy SetWindowLong(WS_EX_TOOLWINDOW) dance is unnecessary.
+                ShowInTaskbar = false;
+                FormBorderStyle = FormBorderStyle.None;
+                Opacity = 0;
+                Size = new Size(0, 0);
+                WindowState = FormWindowState.Minimized;
+                ShowIcon = false;
+                StartPosition = FormStartPosition.Manual;
+                Location = new Point(-2000, -2000);
 
                 NativeMethods.AddClipboardFormatListener(Handle);
-            }
 
-            // Set the window to be a tool window using Win32 API
-            private void SetToolWindow()
-            {
-                // WS_EX_TOOLWINDOW = 0x00000080
-                // This style prevents the window from appearing in the taskbar and alt+tab
-                NativeMethods.SetWindowLong(this.Handle, NativeMethods.GWL_EXSTYLE,
-                    NativeMethods.GetWindowLong(this.Handle, NativeMethods.GWL_EXSTYLE) | 0x00000080);
+                _debounceTimer = new System.Windows.Forms.Timer { Interval = DebounceMs };
+                _debounceTimer.Tick += OnDebounceTick;
             }
 
             protected override void WndProc(ref Message m)
             {
-                if (m.Msg == NativeMethods.WM_CLIPBOARDUPDATE)
+                if (m.Msg == WM_CLIPBOARDUPDATE)
                 {
-                    // Add a small delay to allow the source application to complete its clipboard operation
-                    // This helps prevent clipboard contention with other applications
-                    Task.Delay(75).ContinueWith(_ =>
+                    // If this update is from our own SetText/SetImage/etc., drop it
+                    // without ever opening the clipboard.
+                    if (_service.ConsumeSelfWriteIfFresh())
                     {
-                        try
-                        {
-                            // Use BeginInvoke to ensure clipboard access happens on the correct thread
-                            this.BeginInvoke(new Action(() =>
-                            {
-                                var entry = GetClipboardEntry();
-                                if (entry != null)
-                                {
-                                    _service.OnClipboardChanged(entry);
-                                }
+                        base.WndProc(ref m);
+                        return;
+                    }
 
-                                // Explicitly release the clipboard to ensure other applications can access it
-                                NativeMethods.CloseClipboard();
-                            }));
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error processing clipboard update: {ex.Message}");
-                        }
-                    }, TaskScheduler.Default);
+                    // Restart the debounce timer; only the *last* update in a burst
+                    // will trigger a clipboard read. This collapses rapid-fire
+                    // notifications (e.g., from clipboard-chain managers) into one
+                    // capture and keeps us off the clipboard most of the time.
+                    _debounceTimer.Stop();
+                    _debounceTimer.Start();
                 }
                 base.WndProc(ref m);
             }
 
-            private ClipboardEntry? GetClipboardEntry()
+            private void OnDebounceTick(object? sender, EventArgs e)
+            {
+                _debounceTimer.Stop();
+                try
+                {
+                    var entry = ReadClipboardSnapshot();
+                    if (entry != null)
+                        _service.OnClipboardChanged(entry);
+                }
+                catch
+                {
+                    // Swallow read failures — a missed clip is better than a crash
+                    // or holding the clipboard open during a retry storm.
+                }
+            }
+
+            /// <summary>
+            /// Take a single snapshot of the clipboard via GetDataObject and decide
+            /// the entry type from it. This holds the clipboard open ONCE per event
+            /// instead of 3–5 times like the previous implementation.
+            /// </summary>
+            private static ClipboardEntry? ReadClipboardSnapshot()
+            {
+                IDataObject? data;
+                try
+                {
+                    data = Clipboard.GetDataObject();
+                }
+                catch (ExternalException)
+                {
+                    // CLIPBRD_E_CANT_OPEN — another app has the clipboard. Skip.
+                    return null;
+                }
+                if (data == null) return null;
+
+                bool hasFile  = data.GetDataPresent(DataFormats.FileDrop, false);
+                bool hasText  = data.GetDataPresent(DataFormats.UnicodeText, false)
+                             || data.GetDataPresent(DataFormats.Text, false);
+                bool hasImage = data.GetDataPresent(DataFormats.Bitmap, false)
+                             || data.GetDataPresent(DataFormats.Dib, false);
+
+                if (hasFile)
+                {
+                    if (data.GetData(DataFormats.FileDrop, false) is string[] paths && paths.Length > 0)
+                    {
+                        return new ClipboardEntry
+                        {
+                            Id = Guid.NewGuid(),
+                            Timestamp = DateTime.UtcNow,
+                            DataType = ClipboardDataType.FilePaths,
+                            FilePaths = paths
+                        };
+                    }
+                }
+
+                if (hasText)
+                {
+                    var text = (data.GetData(DataFormats.UnicodeText, false)
+                             ?? data.GetData(DataFormats.Text, false)) as string;
+
+                    // Snipping Tool quirk: it publishes both text (a file:/// URI to a
+                    // temp PNG) AND image data. Prefer the image in that case.
+                    if (hasImage && text != null && IsSnippingToolImageUri(text))
+                    {
+                        var image = TryReadImageBytes(data);
+                        if (image != null)
+                        {
+                            return new ClipboardEntry
+                            {
+                                Id = Guid.NewGuid(),
+                                Timestamp = DateTime.UtcNow,
+                                DataType = ClipboardDataType.Image,
+                                ImageBytes = image
+                            };
+                        }
+                    }
+
+                    if (text != null)
+                    {
+                        return new ClipboardEntry
+                        {
+                            Id = Guid.NewGuid(),
+                            Timestamp = DateTime.UtcNow,
+                            DataType = ClipboardDataType.Text,
+                            PlainText = text
+                        };
+                    }
+                }
+
+                if (hasImage)
+                {
+                    var image = TryReadImageBytes(data);
+                    if (image != null)
+                    {
+                        return new ClipboardEntry
+                        {
+                            Id = Guid.NewGuid(),
+                            Timestamp = DateTime.UtcNow,
+                            DataType = ClipboardDataType.Image,
+                            ImageBytes = image
+                        };
+                    }
+                }
+
+                return null;
+            }
+
+            private static bool IsSnippingToolImageUri(string text)
+            {
+                if (!text.StartsWith("file:///", StringComparison.OrdinalIgnoreCase)) return false;
+                var lower = text.AsSpan().Trim();
+                return lower.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+                    || lower.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+                    || lower.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)
+                    || lower.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase)
+                    || lower.EndsWith(".gif", StringComparison.OrdinalIgnoreCase);
+            }
+
+            private static byte[]? TryReadImageBytes(IDataObject data)
             {
                 try
                 {
-                    // Ensure we have proper access to the clipboard
-                    // This helps prevent conflicts with other applications
-                    if (!NativeMethods.OpenClipboard(this.Handle))
+                    if (data.GetData(DataFormats.Bitmap, false) is Image img)
                     {
-                        Console.WriteLine("Failed to open clipboard");
-                        return null;
-                    }
-
-                    try
-                    {
-                        // Check for file paths first
-                        if (Clipboard.ContainsFileDropList())
-                        {
-                            var fileDropList = Clipboard.GetFileDropList();
-                            string[] filePaths = new string[fileDropList.Count];
-
-                            for (int i = 0; i < fileDropList.Count; i++)
-                            {
-                                filePaths[i] = fileDropList[i] ?? string.Empty;
-                            }
-
-                            return new ClipboardEntry
-                            {
-                                Id = Guid.NewGuid(),
-                                Timestamp = DateTime.UtcNow,
-                                DataType = ClipboardDataType.FilePaths,
-                                FilePaths = filePaths
-                            };
-                        }
-                        // Check for text
-                        else if (Clipboard.ContainsText())
-                        {
-                            // Windows Snipping Tool puts both text and image in clipboard
-                            // If there's also an image, we'll handle it as an image to avoid duplication
-                            if (Clipboard.ContainsImage())
-                            {
-                                string text = Clipboard.GetText();
-                                // Check if this is a screenshot from Windows Snipping Tool
-                                // The text is usually a file path to a temporary image
-                                if (text.StartsWith("file:///") &&
-                                    (text.EndsWith(".png") || text.EndsWith(".jpg") || text.EndsWith(".jpeg") ||
-                                     text.EndsWith(".bmp") || text.EndsWith(".gif")))
-                                {
-                                    // This is likely a screenshot, so we'll handle it as an image
-                                    using var image = Clipboard.GetImage();
-                                    if (image != null)
-                                    {
-                                        using var stream = new System.IO.MemoryStream();
-                                        image.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
-                                        return new ClipboardEntry
-                                        {
-                                            Id = Guid.NewGuid(),
-                                            Timestamp = DateTime.UtcNow,
-                                            DataType = ClipboardDataType.Image,
-                                            ImageBytes = stream.ToArray()
-                                        };
-                                    }
-                                    // If image is null, fall back to text
-                                }
-                            }
-
-                            // Regular text
-                            return new ClipboardEntry
-                            {
-                                Id = Guid.NewGuid(),
-                                Timestamp = DateTime.UtcNow,
-                                DataType = ClipboardDataType.Text,
-                                PlainText = Clipboard.GetText()
-                            };
-                        }
-                        // Check for image
-                        else if (Clipboard.ContainsImage())
-                        {
-                            using var image = Clipboard.GetImage();
-                            if (image != null)
-                            {
-                                using var stream = new System.IO.MemoryStream();
-                                image.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
-                                return new ClipboardEntry
-                                {
-                                    Id = Guid.NewGuid(),
-                                    Timestamp = DateTime.UtcNow,
-                                    DataType = ClipboardDataType.Image,
-                                    ImageBytes = stream.ToArray()
-                                };
-                            }
-                            // If image is null, return null
-                        }
-                    }
-                    finally
-                    {
-                        // Always close the clipboard when done to ensure other applications can access it
-                        NativeMethods.CloseClipboard();
+                        using var stream = new System.IO.MemoryStream();
+                        img.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                        return stream.ToArray();
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
-                    Console.WriteLine($"Error getting clipboard content: {ex.Message}");
-
-                    // Make sure clipboard is closed even if an exception occurs
-                    try { NativeMethods.CloseClipboard(); } catch { }
+                    // Some clipboard publishers expose unstable image data.
                 }
                 return null;
             }
 
             protected override void Dispose(bool disposing)
             {
-                NativeMethods.RemoveClipboardFormatListener(Handle);
+                if (disposing)
+                {
+                    try { _debounceTimer.Stop(); _debounceTimer.Dispose(); } catch { }
+                    try { NativeMethods.RemoveClipboardFormatListener(Handle); } catch { }
+                }
                 base.Dispose(disposing);
             }
         }
 
         private static class NativeMethods
         {
-            public const int WM_CLIPBOARDUPDATE = 0x031D;
-            public const int GWL_EXSTYLE = -20;
-
-            [DllImport("user32.dll")]
+            [DllImport("user32.dll", SetLastError = true)]
             public static extern bool AddClipboardFormatListener(IntPtr hwnd);
 
-            [DllImport("user32.dll")]
+            [DllImport("user32.dll", SetLastError = true)]
             public static extern bool RemoveClipboardFormatListener(IntPtr hwnd);
-
-            [DllImport("user32.dll")]
-            public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-
-            [DllImport("user32.dll")]
-            public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
-
-            [DllImport("user32.dll")]
-            public static extern bool OpenClipboard(IntPtr hWndNewOwner);
-
-            [DllImport("user32.dll")]
-            public static extern bool CloseClipboard();
-
-            [DllImport("user32.dll")]
-            public static extern bool EmptyClipboard();
         }
     }
 }

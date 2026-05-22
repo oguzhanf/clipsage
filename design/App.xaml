@@ -1,0 +1,19 @@
+<!--
+  App.xaml — wire the Zune design system into the application.
+
+  The two important bits:
+   1. RequestedTheme="Dark"   — force dark; the system has no light variant.
+   2. MergedDictionaries      — pull in Themes/Zune.xaml.
+-->
+<Application x:Class="Clipboard.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             RequestedTheme="Dark">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/Themes/Zune.xaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+</Application>

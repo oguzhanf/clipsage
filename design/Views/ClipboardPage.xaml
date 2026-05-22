@@ -1,0 +1,200 @@
+<!--
+  ClipboardPage.xaml — reference page composing the Zune design system.
+  Drop this in /Views/ alongside ClipboardPage.xaml.cs in your WinUI 3 project.
+-->
+<Page x:Class="Clipboard.Views.ClipboardPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{StaticResource ZuneBackground}"
+      RequestedTheme="Dark">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>  <!-- bleed title -->
+      <RowDefinition Height="*"/>     <!-- pivot + content -->
+    </Grid.RowDefinitions>
+
+    <!-- Title bleeds off the right edge. Next pivot ghosts in ZuneForeground5. -->
+    <Grid Grid.Row="0" Margin="0,40,0,0">
+      <TextBlock Style="{StaticResource ZuneTitleBleed}">
+        <Run Text="history"/>
+        <Run Text="  pinned" Foreground="{StaticResource ZuneForeground5}"/>
+      </TextBlock>
+    </Grid>
+
+    <Pivot Grid.Row="1" Style="{StaticResource ZunePivot}"
+           Margin="48,24,48,0" SelectedIndex="0">
+
+      <!-- ============== HISTORY ============== -->
+      <PivotItem Header="history">
+        <Grid Margin="0,32,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="32"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+
+          <!-- Left: history list -->
+          <ListView Grid.Column="0"
+                    Style="{StaticResource ZuneListView}"
+                    ItemsSource="{x:Bind ViewModel.History, Mode=OneWay}"
+                    SelectedItem="{x:Bind ViewModel.Selected, Mode=TwoWay}">
+            <ListView.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Margin="0,14,16,14" Spacing="4">
+                  <TextBlock Text="{Binding Preview}"
+                             Style="{StaticResource ZuneListItem}"
+                             FontSize="14"
+                             TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Text="{Binding Meta}"
+                             Style="{StaticResource ZuneCaption}"/>
+                </StackPanel>
+              </DataTemplate>
+            </ListView.ItemTemplate>
+          </ListView>
+
+          <!-- Right: detail of selected item -->
+          <Grid Grid.Column="2"
+                BorderBrush="{StaticResource ZuneLine}"
+                BorderThickness="1,0,0,0"
+                Padding="32,0,0,0">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+                       Style="{StaticResource ZuneEyebrow}"
+                       Text="{x:Bind ViewModel.Selected.Type, Mode=OneWay}"
+                       Foreground="{StaticResource ZuneAccent}"
+                       Margin="0,0,0,16"/>
+
+            <TextBlock Grid.Row="1"
+                       Text="{x:Bind ViewModel.Selected.Body, Mode=OneWay}"
+                       FontFamily="Segoe UI Light"
+                       FontWeight="Light"
+                       FontSize="32"
+                       CharacterSpacing="-10"
+                       Foreground="{StaticResource ZuneForeground}"
+                       TextWrapping="Wrap"/>
+
+            <TextBlock Grid.Row="2"
+                       Style="{StaticResource ZuneCaption}"
+                       Text="{x:Bind ViewModel.Selected.Source, Mode=OneWay}"
+                       Margin="0,16,0,16"/>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="12">
+              <Button Style="{StaticResource ZuneButtonPrimary}"
+                      Content="copy again"
+                      Click="{x:Bind ViewModel.CopyAgain}"/>
+              <Button Style="{StaticResource ZuneButton}"
+                      Content="pin"
+                      Click="{x:Bind ViewModel.Pin}"/>
+              <Button Style="{StaticResource ZuneButtonGhost}"
+                      Content="remove"
+                      Click="{x:Bind ViewModel.Remove}"/>
+            </StackPanel>
+          </Grid>
+        </Grid>
+      </PivotItem>
+
+      <!-- ============== PINNED ============== -->
+      <PivotItem Header="pinned">
+        <ListView Margin="0,32,0,0"
+                  Style="{StaticResource ZuneListView}"
+                  ItemsSource="{x:Bind ViewModel.Pinned, Mode=OneWay}">
+          <ListView.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Margin="0,20,0,20" Spacing="4"
+                          BorderBrush="{StaticResource ZuneLine}"
+                          BorderThickness="0,0,0,1"
+                          Padding="0,0,0,20">
+                <TextBlock Text="{Binding Body}"
+                           FontFamily="Segoe UI Light"
+                           FontWeight="Light"
+                           FontSize="26"
+                           Foreground="{StaticResource ZuneAccent}"
+                           TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding Meta}"
+                           Style="{StaticResource ZuneCaption}"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListView.ItemTemplate>
+        </ListView>
+      </PivotItem>
+
+      <!-- ============== SEARCH ============== -->
+      <PivotItem Header="search">
+        <StackPanel Margin="0,32,0,0" Spacing="24">
+          <TextBox Style="{StaticResource ZuneTextBox}"
+                   PlaceholderText="type to filter clipboard..."
+                   Text="{x:Bind ViewModel.Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+          <TextBlock Style="{StaticResource ZuneCaption}"
+                     Text="{x:Bind ViewModel.SearchStatus, Mode=OneWay}"/>
+          <ListView Style="{StaticResource ZuneListView}"
+                    ItemsSource="{x:Bind ViewModel.SearchResults, Mode=OneWay}"
+                    ItemTemplate="{StaticResource ZuneListItemTemplate}"/>
+        </StackPanel>
+      </PivotItem>
+
+      <!-- ============== SETTINGS ============== -->
+      <PivotItem Header="settings">
+        <StackPanel Margin="0,32,0,0" Spacing="28" MaxWidth="640" HorizontalAlignment="Left">
+
+          <ToggleSwitch Style="{StaticResource ZuneToggleSwitch}"
+                        Header="launch on windows startup"
+                        IsOn="{x:Bind ViewModel.LaunchOnStartup, Mode=TwoWay}"/>
+
+          <ToggleSwitch Style="{StaticResource ZuneToggleSwitch}"
+                        Header="keep clipboard items across restarts"
+                        IsOn="{x:Bind ViewModel.PersistAcrossRestarts, Mode=TwoWay}"/>
+
+          <ToggleSwitch Style="{StaticResource ZuneToggleSwitch}"
+                        Header="sync to other devices"
+                        IsOn="{x:Bind ViewModel.SyncEnabled, Mode=TwoWay}"/>
+
+          <StackPanel Spacing="12">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Style="{StaticResource ZuneEyebrow}" Text="HISTORY SIZE"/>
+              <TextBlock Grid.Column="1"
+                         FontFamily="Segoe UI Light" FontWeight="Light" FontSize="22"
+                         Foreground="{StaticResource ZuneAccent}"
+                         Text="{x:Bind ViewModel.HistorySizeLabel, Mode=OneWay}"/>
+            </Grid>
+            <Slider Style="{StaticResource ZuneSlider}"
+                    Minimum="50" Maximum="2000"
+                    Value="{x:Bind ViewModel.HistorySize, Mode=TwoWay}"/>
+          </StackPanel>
+
+          <StackPanel Spacing="10">
+            <TextBlock Style="{StaticResource ZuneEyebrow}" Text="GLOBAL SHORTCUT"/>
+            <TextBox Style="{StaticResource ZuneTextBox}"
+                     Text="{x:Bind ViewModel.GlobalShortcut, Mode=TwoWay}"/>
+          </StackPanel>
+
+          <StackPanel Spacing="16" Margin="0,32,0,0"
+                      BorderBrush="{StaticResource ZuneLine}"
+                      BorderThickness="0,1,0,0"
+                      Padding="0,32,0,0">
+            <TextBlock Style="{StaticResource ZuneSubhead}"
+                       FontSize="28"
+                       Text="danger zone"/>
+            <TextBlock Style="{StaticResource ZuneBody}"
+                       MaxWidth="480"
+                       Text="clear all clipboard items including pinned ones. this action can't be undone."/>
+            <Button Style="{StaticResource ZuneButtonDanger}"
+                    Content="clear all history"
+                    Click="{x:Bind ViewModel.ClearAll}"/>
+          </StackPanel>
+        </StackPanel>
+      </PivotItem>
+
+    </Pivot>
+  </Grid>
+</Page>

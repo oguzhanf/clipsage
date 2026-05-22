@@ -5,21 +5,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClipSage.App"
-        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="ClipSage Update"
-        MinHeight="400" MinWidth="550"
-        Width="600" Height="450"
+        Title="clipsage / update"
+        MinHeight="440" MinWidth="600"
+        Width="680" Height="520"
         WindowStartupLocation="CenterOwner"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        TextElement.FontWeight="Regular"
-        TextOptions.TextFormattingMode="Ideal"
-        TextOptions.TextRenderingMode="Auto"
-        Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{materialDesign:MaterialDesignFont}"
-        materialDesign:ElevationAssist.Elevation="Dp3"
-        ShowInTaskbar="False">
-    <Grid Margin="24">
+        ShowInTaskbar="False"
+        Style="{StaticResource ZuneWindow}">
+
+    <Grid Margin="48,32,48,32">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -28,63 +22,80 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <TextBlock Grid.Row="0" Text="Checking for Updates" FontSize="22" FontWeight="Bold" Margin="0,0,0,20"
-                   Foreground="{DynamicResource PrimaryHueMidBrush}"
-                   materialDesign:ShadowAssist.ShadowDepth="Depth1"/>
+        <!-- Title. -->
+        <TextBlock Grid.Row="0"
+                   FontFamily="Segoe UI Light" FontWeight="Light"
+                   FontSize="56"
+                   Foreground="{StaticResource ZuneForeground}"
+                   Text="check for updates"
+                   Margin="0,0,-200,20"/>
 
-        <!-- Progress Bar -->
-        <ProgressBar x:Name="ProgressBar" Grid.Row="1" Height="20" Margin="0,0,0,20" IsIndeterminate="True"
-                     Style="{StaticResource MaterialDesignLinearProgressBar}"/>
+        <!-- Progress. -->
+        <ProgressBar x:Name="ProgressBar" Grid.Row="1"
+                     Style="{StaticResource ZuneProgressBar}"
+                     IsIndeterminate="True"
+                     Margin="0,0,0,20"/>
 
-        <!-- Update Info -->
-        <materialDesign:Card Grid.Row="2" Margin="0,0,0,20" materialDesign:ElevationAssist.Elevation="Dp1" Padding="16">
-            <StackPanel>
-                <TextBlock x:Name="StatusTextBlock" Text="Checking for updates..." TextWrapping="Wrap" FontWeight="Medium"/>
-                <TextBlock x:Name="VersionTextBlock" Text="" TextWrapping="Wrap" Margin="0,12,0,0" Visibility="Collapsed"/>
-                <TextBlock x:Name="ReleaseDateTextBlock" Text="" TextWrapping="Wrap" Margin="0,12,0,0" Visibility="Collapsed"/>
-            </StackPanel>
-        </materialDesign:Card>
+        <!-- Status block. -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,16">
+            <TextBlock x:Name="StatusTextBlock"
+                       Text="checking for updates..."
+                       Foreground="{StaticResource ZuneForeground}"
+                       FontFamily="Segoe UI Light" FontWeight="Light" FontSize="22"
+                       TextWrapping="Wrap"/>
+            <TextBlock x:Name="VersionTextBlock"
+                       Foreground="{StaticResource ZuneAccent}"
+                       FontSize="14"
+                       TextWrapping="Wrap"
+                       Margin="0,8,0,0"
+                       Visibility="Collapsed"/>
+            <TextBlock x:Name="ReleaseDateTextBlock"
+                       Style="{StaticResource ZuneCaption}"
+                       TextWrapping="Wrap"
+                       Margin="0,4,0,0"
+                       Visibility="Collapsed"/>
+        </StackPanel>
 
-        <!-- Log/Status Area -->
-        <materialDesign:Card Grid.Row="3" Margin="0,0,0,20" materialDesign:ElevationAssist.Elevation="Dp2">
+        <!-- Log. -->
+        <Border Grid.Row="3"
+                BorderBrush="{StaticResource ZuneLine}"
+                BorderThickness="0,1,0,1"
+                Background="{StaticResource ZuneSurface1}"
+                Margin="0,0,0,20">
             <ScrollViewer x:Name="LogScrollViewer" VerticalScrollBarVisibility="Auto">
                 <TextBox x:Name="LogTextBox"
                          IsReadOnly="True"
                          TextWrapping="Wrap"
                          Background="Transparent"
                          BorderThickness="0"
+                         Foreground="{StaticResource ZuneForeground2}"
                          FontFamily="Consolas"
+                         FontSize="12"
                          Padding="16"
                          MinHeight="120"/>
             </ScrollViewer>
-        </materialDesign:Card>
+        </Border>
 
-        <!-- Buttons -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+        <!-- Buttons. -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
             <CheckBox x:Name="AutoUpdateCheckBox"
-                      Content="Check for updates automatically"
+                      Style="{StaticResource ZuneCheckBox}"
+                      Content="check for updates automatically"
                       IsChecked="True"
                       VerticalAlignment="Center"
-                      Style="{StaticResource MaterialDesignCheckBox}"
                       Margin="0,0,20,0"/>
             <Button x:Name="UpdateButton"
-                    Content="Update Now"
-                    Width="130" Height="42"
-                    Margin="0,0,16,0"
-                    Click="UpdateButton_Click"
+                    Style="{StaticResource ZuneButtonPrimary}"
+                    Content="update now"
+                    Padding="22,10"
+                    Margin="0,0,12,0"
                     IsEnabled="False"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
-                    materialDesign:ButtonAssist.CornerRadius="4"
-                    materialDesign:ShadowAssist.ShadowDepth="Depth3"
-                    Background="{DynamicResource PrimaryHueMidBrush}" Foreground="White"/>
+                    Click="UpdateButton_Click"/>
             <Button x:Name="CloseButton"
-                    Content="Close"
-                    Width="110" Height="42"
-                    Click="CloseButton_Click"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                    materialDesign:ButtonAssist.CornerRadius="4"
-                    materialDesign:ShadowAssist.ShadowDepth="Depth1"/>
+                    Style="{StaticResource ZuneButton}"
+                    Content="close"
+                    Padding="22,10"
+                    Click="CloseButton_Click"/>
         </StackPanel>
     </Grid>
 </Window>

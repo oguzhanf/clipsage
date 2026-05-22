@@ -5,20 +5,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClipSage.App"
-        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="ClipSage Portable Setup"
-        Height="400" Width="600"
+        Title="clipsage / portable setup"
+        Height="540" Width="680"
         WindowStartupLocation="CenterScreen"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        TextElement.FontWeight="Regular"
-        TextOptions.TextFormattingMode="Ideal"
-        TextOptions.TextRenderingMode="Auto"
-        Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{materialDesign:MaterialDesignFont}"
-        materialDesign:ElevationAssist.Elevation="Dp3"
-        ResizeMode="NoResize">
-    <Grid Margin="24">
+        ResizeMode="NoResize"
+        Style="{StaticResource ZuneWindow}">
+
+    <Grid Margin="48,32,48,32">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -30,124 +24,104 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
+        <!-- Title. -->
         <TextBlock Grid.Row="0"
-                   Text="ClipSage Portable Setup"
-                   FontSize="22"
-                   FontWeight="Bold"
-                   Margin="0,0,0,20"
-                   Foreground="{DynamicResource PrimaryHueMidBrush}"
-                   materialDesign:ShadowAssist.ShadowDepth="Depth1"/>
+                   FontFamily="Segoe UI Light" FontWeight="Light"
+                   FontSize="64"
+                   Foreground="{StaticResource ZuneForeground}"
+                   Text="portable setup"
+                   Margin="0,0,-200,24"/>
 
-        <!-- Current Location Info -->
+        <!-- Current location. -->
         <StackPanel Grid.Row="1" Margin="0,0,0,20">
-            <TextBlock Text="Current Application Location:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+            <TextBlock Style="{StaticResource ZuneEyebrow}" Text="CURRENT LOCATION" Margin="0,0,0,6"/>
             <TextBlock x:Name="CurrentLocationTextBlock"
                        Text="C:\Path\To\Current\Location"
+                       Foreground="{StaticResource ZuneForeground2}"
                        TextWrapping="Wrap"
-                       Margin="0,0,0,0"/>
+                       FontFamily="Consolas"
+                       FontSize="13"/>
         </StackPanel>
 
-        <!-- Destination Folder Selection -->
+        <!-- Destination. -->
         <StackPanel Grid.Row="2" Margin="0,0,0,20">
-            <TextBlock Text="Destination Folder:" FontWeight="SemiBold" Margin="0,0,0,8"/>
-            <Grid Margin="0,0,0,0">
+            <TextBlock Style="{StaticResource ZuneEyebrow}" Text="DESTINATION" Margin="0,0,0,8"/>
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBox x:Name="DestinationFolderTextBox"
-                         Grid.Column="0"
-                         Margin="0,0,16,0"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         materialDesign:HintAssist.Hint="Enter destination folder path"
-                         materialDesign:TextFieldAssist.HasClearButton="True"
-                         materialDesign:ShadowAssist.ShadowDepth="Depth1"
-                         TextChanged="DestinationFolderTextBox_TextChanged"
-                         VerticalAlignment="Center"/>
+                <TextBox x:Name="DestinationFolderTextBox" Grid.Column="0"
+                         Style="{StaticResource ZuneTextBox}"
+                         FontSize="14" Padding="14,8"
+                         Margin="0,0,12,0"
+                         TextChanged="DestinationFolderTextBox_TextChanged"/>
                 <Button Grid.Column="1"
-                        Content="Browse..."
-                        Width="100" Height="40"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        materialDesign:ButtonAssist.CornerRadius="4"
-                        materialDesign:ShadowAssist.ShadowDepth="Depth2"
+                        Style="{StaticResource ZuneButton}"
+                        Content="browse"
+                        Padding="22,10"
                         Click="BrowseButton_Click"/>
             </Grid>
         </StackPanel>
 
-        <!-- Shortcut Options -->
+        <!-- Shortcut options. -->
         <StackPanel Grid.Row="3" Margin="0,0,0,20">
-            <TextBlock Text="Shortcut Options:" FontWeight="SemiBold" Margin="0,0,0,8"/>
+            <TextBlock Style="{StaticResource ZuneEyebrow}" Text="SHORTCUTS" Margin="0,0,0,12"/>
             <CheckBox x:Name="CreateDesktopShortcutCheckBox"
-                      Content="Create desktop shortcut"
+                      Style="{StaticResource ZuneCheckBox}"
+                      Content="create desktop shortcut"
                       IsChecked="True"
-                      Style="{StaticResource MaterialDesignCheckBox}"
-                      Margin="0,8,0,12"/>
+                      Margin="0,0,0,10"/>
             <CheckBox x:Name="CreateStartMenuShortcutCheckBox"
-                      Content="Create start menu shortcut"
-                      IsChecked="True"
-                      Style="{StaticResource MaterialDesignCheckBox}"
-                      Margin="0,0,0,8"/>
+                      Style="{StaticResource ZuneCheckBox}"
+                      Content="create start menu shortcut"
+                      IsChecked="True"/>
         </StackPanel>
 
-        <!-- Warning for OneDrive -->
-        <materialDesign:Card Grid.Row="4"
-                             Background="#FFF4E5"
-                             Margin="0,0,0,20"
-                             materialDesign:ElevationAssist.Elevation="Dp1"
-                             x:Name="OneDriveWarningPanel"
-                             Visibility="Collapsed">
-            <Grid Margin="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+        <!-- OneDrive warning. -->
+        <Border x:Name="OneDriveWarningPanel" Grid.Row="4"
+                Background="{StaticResource ZuneSurface2}"
+                BorderBrush="{StaticResource ZuneAccent}"
+                BorderThickness="2,0,0,0"
+                Padding="20,16"
+                Margin="0,0,0,20"
+                Visibility="Collapsed">
+            <StackPanel>
+                <TextBlock Style="{StaticResource ZuneEyebrow}"
+                           Text="ONEDRIVE LOCATION DETECTED"
+                           Foreground="{StaticResource ZuneAccent}"
+                           Margin="0,0,0,6"/>
+                <TextBlock Style="{StaticResource ZuneBody}"
+                           FontSize="13"
+                           TextWrapping="Wrap">
+                    using onedrive for your cache location is a good choice for syncing clipboard history between devices, but the cache file may occasionally be locked during sync operations.
+                </TextBlock>
+            </StackPanel>
+        </Border>
 
-                <materialDesign:PackIcon Kind="CloudWarning" Grid.Column="0" Width="24" Height="24"
-                                         Foreground="#E67E22" VerticalAlignment="Top" Margin="0,0,16,0"/>
-
-                <StackPanel Grid.Column="1">
-                    <TextBlock Text="OneDrive Location Detected"
-                               FontWeight="Bold"
-                               Foreground="#E67E22"
-                               Margin="0,0,0,8"/>
-                    <TextBlock Text="Using OneDrive for your cache location is a good choice for syncing clipboard history between devices, but be aware that the database file may occasionally be locked during sync operations."
-                               TextWrapping="Wrap"
-                               Margin="0,0,0,0"
-                               Foreground="#7F5F00"/>
-                </StackPanel>
-            </Grid>
-        </materialDesign:Card>
-
-        <!-- Status Message -->
+        <!-- Status message. -->
         <TextBlock Grid.Row="5"
                    x:Name="StatusMessageTextBlock"
+                   Foreground="{StaticResource ZuneDanger}"
+                   FontSize="13"
                    TextWrapping="Wrap"
-                   Margin="0,0,0,20"
-                   Foreground="Red"
-                   FontWeight="Medium"
-                   Visibility="Collapsed"/>
+                   Visibility="Collapsed"
+                   Margin="0,0,0,16"/>
 
-        <!-- Buttons -->
+        <!-- Buttons. -->
         <StackPanel Grid.Row="7"
                     Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    Margin="0,10,0,0">
-            <Button Content="Cancel"
-                    Width="110" Height="42"
-                    Margin="0,0,16,0"
-                    Click="CancelButton_Click"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                    materialDesign:ButtonAssist.CornerRadius="4"
-                    materialDesign:ShadowAssist.ShadowDepth="Depth1"/>
-            <Button Content="Setup"
-                    Width="110" Height="42"
-                    Click="SetupButton_Click"
-                    x:Name="SetupButton"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
-                    materialDesign:ButtonAssist.CornerRadius="4"
-                    materialDesign:ShadowAssist.ShadowDepth="Depth3"
-                    Background="{DynamicResource PrimaryHueMidBrush}" Foreground="White"/>
+                    HorizontalAlignment="Right">
+            <Button Style="{StaticResource ZuneButton}"
+                    Content="cancel"
+                    Padding="22,10"
+                    Margin="0,0,12,0"
+                    Click="CancelButton_Click"/>
+            <Button x:Name="SetupButton"
+                    Style="{StaticResource ZuneButtonPrimary}"
+                    Content="setup"
+                    Padding="22,10"
+                    Click="SetupButton_Click"/>
         </StackPanel>
     </Grid>
 </Window>

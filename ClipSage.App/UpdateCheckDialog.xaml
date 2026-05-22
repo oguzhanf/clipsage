@@ -4,22 +4,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClipSage.App"
-        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="Check for Updates"
-        MinHeight="400" MinWidth="550"
-        Width="600" Height="450"
+        Title="clipsage / check for updates"
+        MinHeight="420" MinWidth="600"
+        Width="680" Height="480"
         WindowStartupLocation="CenterOwner"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        TextElement.FontWeight="Regular"
-        TextOptions.TextFormattingMode="Ideal"
-        TextOptions.TextRenderingMode="Auto"
-        Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{materialDesign:MaterialDesignFont}"
-        materialDesign:ElevationAssist.Elevation="Dp3"
-        ShowInTaskbar="False">
+        ShowInTaskbar="False"
+        Style="{StaticResource ZuneWindow}">
 
-    <Grid Margin="20">
+    <Grid Margin="48,32,48,32">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -27,45 +20,55 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <TextBlock Grid.Row="0" Text="Checking for Updates" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"
-                   Foreground="{DynamicResource PrimaryHueMidBrush}"
-                   materialDesign:ShadowAssist.ShadowDepth="Depth1"/>
+        <TextBlock Grid.Row="0"
+                   FontFamily="Segoe UI Light" FontWeight="Light"
+                   FontSize="56"
+                   Foreground="{StaticResource ZuneForeground}"
+                   Text="check for updates"
+                   Margin="0,0,-200,20"/>
 
-        <!-- Progress Bar -->
-        <ProgressBar x:Name="ProgressBar" Grid.Row="1" Height="20" Margin="0,0,0,15" IsIndeterminate="True"
-                     Style="{StaticResource MaterialDesignLinearProgressBar}"/>
+        <ProgressBar x:Name="ProgressBar" Grid.Row="1"
+                     Style="{StaticResource ZuneProgressBar}"
+                     IsIndeterminate="True"
+                     Margin="0,0,0,20"/>
 
-        <!-- Log/Status Area -->
-        <materialDesign:Card Grid.Row="2" Margin="0,0,0,15" materialDesign:ElevationAssist.Elevation="Dp2">
+        <Border Grid.Row="2"
+                BorderBrush="{StaticResource ZuneLine}"
+                BorderThickness="0,1,0,1"
+                Background="{StaticResource ZuneSurface1}"
+                Margin="0,0,0,20">
             <ScrollViewer x:Name="LogScrollViewer" VerticalScrollBarVisibility="Auto">
                 <TextBox x:Name="LogTextBox"
                          IsReadOnly="True"
                          TextWrapping="Wrap"
                          Background="Transparent"
                          BorderThickness="0"
+                         Foreground="{StaticResource ZuneForeground2}"
                          FontFamily="Consolas"
-                         Padding="10"/>
+                         FontSize="12"
+                         Padding="16"/>
             </ScrollViewer>
-        </materialDesign:Card>
+        </Border>
 
-        <!-- Buttons -->
-        <Grid Grid.Row="3" Margin="0,0,0,5">
+        <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button x:Name="CloseButton" Grid.Column="1" Content="Close" Width="120" Height="40" Margin="0,0,16,0" Click="CloseButton_Click"
-                    Style="{StaticResource MaterialDesignOutlinedButton}"
-                    materialDesign:ButtonAssist.CornerRadius="4"
-                    materialDesign:ShadowAssist.ShadowDepth="Depth1"/>
-            <Button x:Name="DownloadButton" Grid.Column="2" Content="Download" Width="120" Height="40" IsEnabled="False" Click="DownloadButton_Click"
-                    Style="{StaticResource MaterialDesignRaisedButton}"
-                    materialDesign:ButtonAssist.CornerRadius="4"
-                    materialDesign:ShadowAssist.ShadowDepth="Depth3"
-                    Background="{DynamicResource PrimaryHueMidBrush}" Foreground="White"/>
+            <Button x:Name="CloseButton" Grid.Column="1"
+                    Style="{StaticResource ZuneButton}"
+                    Content="close"
+                    Padding="22,10"
+                    Margin="0,0,12,0"
+                    Click="CloseButton_Click"/>
+            <Button x:Name="DownloadButton" Grid.Column="2"
+                    Style="{StaticResource ZuneButtonPrimary}"
+                    Content="download"
+                    Padding="22,10"
+                    IsEnabled="False"
+                    Click="DownloadButton_Click"/>
         </Grid>
     </Grid>
 </Window>
