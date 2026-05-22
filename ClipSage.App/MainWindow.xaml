@@ -18,7 +18,7 @@
         Style="{StaticResource ZuneWindow}">
 
     <shell:WindowChrome.WindowChrome>
-        <shell:WindowChrome CaptionHeight="32"
+        <shell:WindowChrome CaptionHeight="48"
                             ResizeBorderThickness="6"
                             CornerRadius="0"
                             GlassFrameThickness="0"
@@ -52,33 +52,59 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="32"/>    <!-- chrome bar -->
-            <RowDefinition Height="Auto"/>  <!-- menu -->
-            <RowDefinition Height="Auto"/>  <!-- title -->
+            <RowDefinition Height="48"/>    <!-- chrome strip: wordmark + menu + window buttons -->
             <RowDefinition Height="Auto"/>  <!-- search -->
             <RowDefinition Height="*"/>     <!-- list + preview -->
             <RowDefinition Height="Auto"/>  <!-- status bar -->
         </Grid.RowDefinitions>
 
-        <!-- Custom chrome bar (replaces the Windows title bar). -->
+        <!--
+          Chrome strip — replaces the native title bar.
+          Holds the brand mark, the file/help menu, and the window buttons.
+          The whole strip is the WindowChrome CaptionHeight=48 drag region
+          except where children opt in via IsHitTestVisibleInChrome=True.
+        -->
         <Grid Grid.Row="0" Background="{StaticResource ZuneBackground}">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Wordmark (small, on the left). Whole strip is draggable. -->
+            <!-- Brand mark — only "title" text in the whole window. Aligned to the 32px gutter. -->
             <TextBlock Grid.Column="0"
                        Text="clipsage"
-                       Foreground="{StaticResource ZuneForeground4}"
-                       FontFamily="Segoe UI"
-                       FontSize="12"
+                       FontFamily="Segoe UI Light"
+                       FontWeight="Light"
+                       FontSize="22"
+                       Foreground="{StaticResource ZuneForeground}"
                        VerticalAlignment="Center"
-                       Margin="14,0,0,0"/>
+                       Margin="32,0,0,0"/>
 
-            <!-- Min / Max / Close — IsHitTestVisibleInChrome lets them receive clicks. -->
-            <StackPanel Grid.Column="1" Orientation="Horizontal"
+            <!-- Reserved drag area between the brand and the buttons. -->
+            <Grid Grid.Column="1" Width="0"/>
+
+            <!-- App actions + window buttons. Settings is one click from the chrome strip. -->
+            <StackPanel Grid.Column="3" Orientation="Horizontal"
                         shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                <Button x:Name="SettingsButton"
+                        Style="{StaticResource ZuneChromeButton}"
+                        Content="&#xE713;"
+                        ToolTip="settings"
+                        Click="Settings_Click"/>
+                <Button x:Name="UpdatesButton"
+                        Style="{StaticResource ZuneChromeButton}"
+                        Content="&#xE895;"
+                        ToolTip="check for updates"
+                        Click="CheckForUpdates_Click"/>
+                <Button x:Name="AboutButton"
+                        Style="{StaticResource ZuneChromeButton}"
+                        Content="&#xE946;"
+                        ToolTip="about"
+                        Click="About_Click"/>
+                <!-- Subtle gap between app actions and window controls. -->
+                <Border Width="1" Background="{StaticResource ZuneLine}" Margin="6,12,6,12"/>
                 <Button x:Name="MinimizeButton"
                         Style="{StaticResource ZuneChromeButton}"
                         Content="&#xE921;"
@@ -97,42 +123,16 @@
             </StackPanel>
         </Grid>
 
-        <!-- Menu — flat, lowercase. -->
-        <Menu Grid.Row="1" Style="{StaticResource ZuneMenu}" Padding="32,8,32,0">
-            <MenuItem Header="file" Foreground="{StaticResource ZuneForeground2}">
-                <MenuItem Header="settings..." Click="Settings_Click"/>
-                <Separator/>
-                <MenuItem Header="exit" Click="Exit_Click"/>
-            </MenuItem>
-            <MenuItem Header="help" Foreground="{StaticResource ZuneForeground2}">
-                <MenuItem Header="about" Click="About_Click"/>
-                <MenuItem Header="check for updates" Click="CheckForUpdates_Click"/>
-            </MenuItem>
-        </Menu>
-
-        <!-- Title — big, lowercase, light, the signature Zune move. -->
-        <Grid Grid.Row="2" Margin="32,16,0,8">
-            <TextBlock FontFamily="Segoe UI Light"
-                       FontWeight="Light"
-                       FontSize="72"
-                       Foreground="{StaticResource ZuneForeground}"
-                       Margin="0,0,-200,0">
-                <Run Text="clipboard"/><Run Text="  history" Foreground="{StaticResource ZuneForeground5}"/>
-            </TextBlock>
-        </Grid>
-
         <!-- Search box. -->
-        <Grid Grid.Row="3" Margin="32,8,32,16">
+        <Grid Grid.Row="1" Margin="32,8,32,16">
             <TextBox x:Name="SearchBox"
                      Style="{StaticResource ZuneTextBox}"
-                     FontSize="14"
-                     Padding="14,8"
                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                      Tag="type to filter clipboard..."/>
         </Grid>
 
         <!-- List + preview. -->
-        <Grid Grid.Row="4" Margin="32,0,32,0">
+        <Grid Grid.Row="2" Margin="32,0,32,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -262,10 +262,10 @@
                 <TextBlock DockPanel.Dock="Top"
                            Style="{StaticResource ZuneEyebrow}"
                            Text="PREVIEW"
-                           Margin="0,0,0,12"/>
+                           Margin="0,0,0,8"/>
 
                 <!-- Actions at bottom-right. -->
-                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,8">
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
                     <Button Content="copy"
                             Style="{StaticResource ZuneButtonPrimary}"
                             Margin="0,0,12,0"
@@ -376,7 +376,7 @@
         </Grid>
 
         <!-- Status bar. -->
-        <Border Grid.Row="5" BorderBrush="{StaticResource ZuneLine}" BorderThickness="0,1,0,0" Margin="0,16,0,0">
+        <Border Grid.Row="3" BorderBrush="{StaticResource ZuneLine}" BorderThickness="0,1,0,0" Margin="0,12,0,0">
             <StatusBar Style="{StaticResource ZuneStatusBar}" Height="36" Padding="32,0">
                 <StatusBar.ItemsPanel>
                     <ItemsPanelTemplate>

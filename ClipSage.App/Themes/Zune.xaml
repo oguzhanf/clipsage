@@ -232,13 +232,13 @@
     <Setter Property="Foreground"  Value="{StaticResource ZuneForeground2}"/>
   </Style>
 
-  <!-- Chrome button: 46×32 with consistent MDL2 glyphs (min/max/close all same metric). -->
+  <!-- Chrome button: 46×48 with consistent MDL2 glyphs (min/max/close all same metric). -->
   <Style x:Key="ZuneChromeButton" TargetType="Button">
     <Setter Property="Background"      Value="Transparent"/>
     <Setter Property="Foreground"      Value="{StaticResource ZuneForeground2}"/>
     <Setter Property="BorderThickness" Value="0"/>
     <Setter Property="Width"           Value="46"/>
-    <Setter Property="Height"          Value="32"/>
+    <Setter Property="Height"          Value="48"/>
     <Setter Property="FontFamily"      Value="Segoe MDL2 Assets"/>
     <Setter Property="FontSize"        Value="10"/>
     <Setter Property="Cursor"          Value="Arrow"/>

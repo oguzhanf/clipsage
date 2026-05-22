@@ -61,13 +61,82 @@ namespace ClipSage.App
         }
 
         /// <summary>
-        /// Gets the default portable cache folder path
+        /// Gets the default cache folder path. Prefers a cloud-synced folder
+        /// (OneDrive → Google Drive → Dropbox) so clipboard history syncs across
+        /// machines out of the box. Falls back to %USERPROFILE%\Documents\ClipSage,
+        /// then to a Cache folder next to the executable as a last resort.
         /// </summary>
-        /// <returns>The default portable cache folder path</returns>
         public static string GetDefaultPortableCacheFolder()
         {
-            string executableDirectory = AppContext.BaseDirectory;
-            return Path.Combine(executableDirectory, "Cache");
+            var cloud = TryFindCloudSyncRoot();
+            if (cloud != null)
+            {
+                return Path.Combine(cloud, "ClipSage");
+            }
+
+            var documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            if (!string.IsNullOrEmpty(documents) && Directory.Exists(documents))
+            {
+                return Path.Combine(documents, "ClipSage");
+            }
+
+            return Path.Combine(AppContext.BaseDirectory, "Cache");
+        }
+
+        /// <summary>
+        /// Looks for a cloud-sync root on the current machine. Detection order:
+        /// 1. OneDrive client env vars (OneDriveCommercial → OneDrive → OneDriveConsumer)
+        /// 2. %USERPROFILE%\OneDrive, OneDrive - Personal, OneDrive - {tenant}
+        /// 3. %USERPROFILE%\Google Drive
+        /// 4. %USERPROFILE%\Dropbox
+        /// Returns null if no cloud root is found.
+        /// </summary>
+        public static string? TryFindCloudSyncRoot()
+        {
+            // OneDrive sets these env vars in its sign-in flow.
+            foreach (var name in new[] { "OneDriveCommercial", "OneDrive", "OneDriveConsumer" })
+            {
+                var path = Environment.GetEnvironmentVariable(name);
+                if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
+                    return path;
+            }
+
+            var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            if (string.IsNullOrEmpty(userProfile))
+                return null;
+
+            // OneDrive default install names.
+            foreach (var name in new[] { "OneDrive", "OneDrive - Personal" })
+            {
+                var path = Path.Combine(userProfile, name);
+                if (Directory.Exists(path))
+                    return path;
+            }
+
+            // Tenanted OneDrive (e.g. "OneDrive - Contoso").
+            try
+            {
+                foreach (var dir in Directory.EnumerateDirectories(userProfile, "OneDrive - *"))
+                {
+                    return dir;
+                }
+            }
+            catch { /* enumeration can fail on locked profiles; ignore */ }
+
+            // Google Drive desktop client (older naming).
+            foreach (var name in new[] { "Google Drive", "GoogleDrive" })
+            {
+                var path = Path.Combine(userProfile, name);
+                if (Directory.Exists(path))
+                    return path;
+            }
+
+            // Dropbox.
+            var dropbox = Path.Combine(userProfile, "Dropbox");
+            if (Directory.Exists(dropbox))
+                return dropbox;
+
+            return null;
         }
 
         /// <summary>

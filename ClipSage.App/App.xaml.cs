@@ -221,12 +221,11 @@ namespace ClipSage.App
         {
             var dialog = new CachingFolderDialog();
 
-            // If we're in portable mode, suggest the default portable cache folder
-            if (_isPortableMode)
-            {
-                string defaultCacheFolder = PortableHelper.GetDefaultPortableCacheFolder();
-                dialog.SetInitialFolder(defaultCacheFolder);
-            }
+            // Always pre-fill with the best default we can find (cloud-sync folder
+            // when available; falls back to Documents\ClipSage; lastly to a Cache
+            // folder beside the exe). Done in both portable and non-portable modes.
+            string defaultCacheFolder = PortableHelper.GetDefaultPortableCacheFolder();
+            dialog.SetInitialFolder(defaultCacheFolder);
 
             if (dialog.ShowDialog() == true)
             {
